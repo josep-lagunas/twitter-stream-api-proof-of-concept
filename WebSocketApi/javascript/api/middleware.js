@@ -13,6 +13,7 @@
 
         var instance = "";
         var _baseURL = "";
+        var _baseWebsocketUrl = "";
 
         function init(){
 
@@ -81,13 +82,13 @@
                 return PathParameters;
             }
 
-            return	{
+            return {
                 /*
                  *	This method wrap a call to server api REST (GET,POST,PUT) passing parameters as
                  * 	query string for
                  *
                  */
-                callRESTServerMethod : function() {
+                callRESTServerMethod: function () {
 
 
                     //check for base URL
@@ -110,17 +111,17 @@
                     if (checkVerb === undefined)
                         throw new Error("A VERB must be specified");
 
-                    if (checkVerb === "GET"){
+                    if (checkVerb === "GET") {
                         // Body parameters are not allowed
                         // Only query and/or path parameters allowed
                         var bodyParameters = settings["bodyParameters"];
-                        if (bodyParameters !== undefined){
+                        if (bodyParameters !== undefined) {
                             throw new Error("Invalid use of bodyParameters in a GET call");
                         }
                     }
-//					}else if (checkVerb === "POST" || checkVerb === "PUT"){
-//						//No checs needed
-//					}
+                    //					}else if (checkVerb === "POST" || checkVerb === "PUT"){
+                    //						//No checs needed
+                    //					}
 
                     var async = settings["async"] || true;
                     var verb = checkVerb;
@@ -132,10 +133,10 @@
                     var pathParameters = settings["pathParameters"];
                     var pathParametersURL = extractPathParameters(pathParameters);
 
-                    var bodyParameters = settings ["bodyParameters"] || "";
+                    var bodyParameters = settings["bodyParameters"] || "";
                     bodyParameters = (bodyParameters !== "" && bodyParameters !== undefined) ? bodyParameters : "";
                     //we have to check if we have received the body parameter already stringified or not
-                    if (typeof(bodyParameters) !== "string")
+                    if (typeof (bodyParameters) !== "string")
                         bodyParameters = JSON.stringify(bodyParameters);
 
 
@@ -177,22 +178,59 @@
                         beforeSend: beforeSendCallback,
                         complete: completedCallback
                     });
+                },
+                callWebSocketMethod: function () {
+
+                    //check for base URL
+                    isBaseURLSet();
+
+                    if (arguments.length === 0)
+                        return;
+
+                    var settings = arguments[0];
+
+                    var method = settings["method"];
+
+                    if (method === undefined)
+                        throw new Error("A method must specified");
+
+                    method = "/" + method;
+                    
+                    var onOpenCallback = settings["onOpenCallback"];
+                    var onMessageCallback = settings["onMessageCallback"];
+                    var onErrorCallback = settings["onErrorCallback"];
+                    var onCloseCallback = settings["onCloseCallback"];
+                    
+                    var url = _baseWebsocketUrl + method;
+
+                    var connection = new WebSocket(url);
+                                        
+                    return connection;
                 }
-            };
+            }
         };
 
         return{
 
             setBaseURL: function(baseURL){
 
+                if (baseURL.indexOf('https') == -1 && baseURL.indexOf('http') == -1) {
+                    throw Error("http or https not found.")
+                }
                 _baseURL = baseURL;
+                _baseWebsocketUrl = baseURL.replace('https', 'ws').replace('http', 'ws');
+
             },
 
             getBaseURL: function(){
 
                 return _baseURL;
             },
+            getBaseWebSocketURL: function () {
 
+                return _baseWebsocketUrl;
+
+            },
             getInstance: function(){
 
                 if (!instance){

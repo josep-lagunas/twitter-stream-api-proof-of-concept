@@ -1,0 +1,388 @@
+body {
+    overflow: hidden;
+}
+.hide {
+    display: none;
+}
+
+.font-face {
+    font-family: HelveticaNeue;
+    src: url(./fonts/helveticaneue-webfont.woff);
+}
+
+.nav-bar-shell{
+    height: 45px;
+    border: solid 1px #eee;
+    border-radius: 5px;
+    margin-top: -13px;
+}
+
+.overUploader{
+    background-color: #eee;
+    color:#fff;
+}
+
+#uploadContainer{
+    text-align:center;
+    height: 100px;
+    width: 100%;
+    border:dashed 1px #ccc;
+    padding: 5px;
+    display: inline-block;
+    border-radius: 5px;
+    vertical-align: middle;
+    position: relative;
+    line-height: 100px;
+    color:#666;
+}
+
+#uploadsStatusContainer{
+    /*max-height: 150px;*/
+    overflow-y: auto;
+}
+
+#processFeedBackContainer{
+    max-height: 150px;
+    overflow-y: auto;
+    background-color: #000;
+    border-radius: 5px;
+}
+
+.actionPerformedStatus{
+    line-height: 1.5em;
+    width: 100%;
+    padding: 2px;
+    font-family: courier;
+    font-size: 9pt;
+}
+
+.success{
+    color: rgb(55, 212, 107);
+}
+
+.error{
+    color: rgb(251, 126, 126);
+}
+
+.warning{
+    color: rgb(255, 171, 0);
+}
+.uploadRowContainer{
+    height: 25px;
+}
+
+.uploadRowInfoLabel{
+    width: 100%;
+    font-size: 9pt;
+    width: 68%;
+    height: 15px;
+    float: right;
+    line-height: 16px;
+    text-align: left;
+}
+
+.uploadRowProgressContainer{
+    width: 30%;
+    float: left;
+    height: 15px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.uploadRowProgressOuter{
+    width: 100%;
+    height: 15px;
+    border:solid 1px #666;
+    padding: 1px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 3px;
+}
+
+.uploadRowProgressInner{
+    background-color: rgb(241, 188, 10);
+    width:0%;
+    height: 100%;
+    border-radius: 2px;
+    line-height: 100%;
+    text-align: center;
+    color: #fff;
+    font-size: 9pt;
+}
+
+.uploadRowProgressInnerRejected{
+    background-color: rgb(229, 134, 134);
+    width: 100%!important;
+}
+
+.uploadRowProgressInnerInvalidContent{
+    background-color: rgb(240, 160, 67);
+    width: 100%!important;
+}
+.uploadRowProgressInnerCompleted{
+    background-color: rgb(25, 213, 96)!important;
+}
+
+.progressBlock{
+    float: left;
+    height: 100%;
+}
+
+.initialBlock{
+    border-radius: 2px 0 0 2px;
+}
+
+.endingBlock{
+    border-radius: 0 2px 2px 0;
+}
+
+.progressError{
+    background-color: rgb(251, 126, 126);
+}
+
+.progressSuccess{
+    background-color: rgb(55, 212, 107);
+}
+
+.progressWarning{
+    background-color: rgb(255, 171, 0);
+}
+
+.searchContainer{
+    margin-left: auto;
+    margin-right: auto;
+    height: 70px;
+}
+
+
+.searchContainerUnit{
+    position: relative;
+    float: left;
+    width: 50%;
+    padding: 1%;
+}
+
+.dateSelectorContainer{
+    height: 100px;
+}
+
+.requiredField{
+    border: solid 1px red!important;
+}
+
+/*
+.nav>li>a{
+    padding: 5px 10px 5px 10px!important;
+}
+*/
+.navbar-brand>img{
+    height:90px;
+}
+
+.navbar-brand{
+    padding: 20px 0 10px 10px!important;
+}
+
+
+.search-result-container {
+    height: 100px;
+    position: absolute;
+    margin-top: -10px;
+    border-radius: 3px;
+    margin-left: -310px;
+    width: 500px;
+}
+
+.search-result-item {
+
+    position: relative;
+    width: 100%;
+    height: 90px;
+    border: solid 2px #EEEEEE;
+    border-radius: 4px;
+    background-color: #FFFFFF;
+
+}
+
+#workareascontainer {
+    width: 100%;
+    left: 0%;
+    height: 90%;
+    position: relative;
+    -webkit-perspective: 1000px;
+    -moz-perspective: 1000px;
+    -o-perspective: 1000px;
+    perspective: 1000px;
+    border: solid 0px red;
+    background-color:#ccc;
+}
+
+#workareascarousel {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    -webkit-transform-style: preserve-3d;
+    -moz-transform-style: preserve-3d;
+    -o-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    -webkit-transition: -webkit-transform 0.3s;
+    -moz-transition: -moz-transform 0.3s;
+    -o-transition: -o-transform 0.3s;
+    transition: transform 0.3s;
+}
+
+.workarea {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0%;
+    top: 0%;
+    border: 0px solid black;
+    background-color: #fff;
+}
+
+
+.quick-access-items-container {
+    position:absolute;
+    height: 95%;
+    width: 95%;
+    top: 2.5%;
+    left: 2.5%;
+}
+
+.quick-access-item-wrapper {
+    position: relative;
+    float: left;
+    height: 200px;
+    width: 250px;
+    margin: 2.5%;
+}
+
+.quick-access-item {
+    height: 90%;
+    width: 90%;
+    position: absolute;
+    border: solid 1px #666;
+    background: #46b8da;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: #999 7px 8px 14px;
+    cursor:pointer;
+    padding: 5px;
+}
+
+.quick-access-item:active {
+    box-shadow: #999 0 0 0 0;
+    margin-left: 3%;
+}
+
+.quick-access-item > p {
+    margin-top: 10%;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif";
+    font-size: 1.2em;
+    font-style: italic;
+    color: #fff;
+}
+
+.quick-access-item > i {
+    margin-top : 10%;
+    color: #fff;
+}
+
+
+.incentive-images-gallery-container {
+    position: relative;
+    width: 100%;
+    height: 10%;
+}
+
+.incentive-images-gallery-container-incentive-info-row {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif";
+    font-size: 1.2em;
+    font-style: italic;
+    color: #666;
+    position:relative;
+    width: 40%;
+    top: 30%;
+}
+
+.incentive-images-gallery-original-images-container {
+    width: 95%;
+    height: 100%;
+    position: relative;
+    left: 0.75%;
+    border:solid 0px;
+    overflow: hidden;
+}
+
+.incentive-upload-button {
+    background-color: #eee;
+    padding: 5px;
+    border-radius: 5px;
+    border: solid 1px #666;
+    cursor: pointer;
+    /*box-shadow: #666 2px 4px 5px;*/
+}
+
+#incentive-gallery-images-container {
+    position: relative;
+    width: 90%;
+    height: 90%;
+    margin-left: 5%;
+    border: solid 1px;
+}
+
+.right {
+    float: right!important;
+}
+
+.left {
+    float: left!important;
+}
+
+.image-thumbnail{
+    position: relative;
+    height: 70%;
+    width: 300px;
+    border: solid 1px #ccc;
+    border-radius: 5px;
+    float: left;
+    margin-right: 5px;
+    margin-top: 5px;
+    cursor: pointer;
+    box-shadow: #666 5px 6px 10px -2px;
+}
+
+.image-thumbnail-remover {
+    color: red;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    height: 16px;
+    width: 25px;
+    background-color: #fff;
+    border-radius: 15px;
+    border: solid 1px #666;
+    cursor: pointer;
+}
+.image-thumbnail > img {
+    position: absolute;
+    height: 95%;
+    width: 95%;
+    left: 2.5%;
+    top: 2.5%;
+    border: solid 0px #ccc;
+    border-radius: 3px;
+}
+
+
+/* cropper plugin overwritten */
+.cropper-container {
+    padding: 5px;
+    border: solid 1px #ccc;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
