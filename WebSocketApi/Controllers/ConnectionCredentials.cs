@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -9,11 +10,14 @@ namespace WebSocketApi.Controllers
         public string ClientId { get; }
         public string SessionId { get; }
         public string HashedKey { get; set; }
-        private bool ConnectionSet;
+        private bool _connectionSet;
+        public bool ConnectionSet { get { return _connectionSet; } }
+
+        private List<ServerEvents> eventSubscriptions { get; set; }
 
         public void connected()
         {
-            ConnectionSet = true;
+            _connectionSet = true;
         }
         
         public ConnectionCredentials(string clientId, string sessionId)
@@ -21,7 +25,8 @@ namespace WebSocketApi.Controllers
             this.ClientId = clientId;
             this.SessionId = sessionId;
             this.HashedKey = GetHashedKey(clientId, sessionId);
-            this.ConnectionSet = false;
+            _connectionSet = false;
+            this.eventSubscriptions = new List<ServerEvents>();
         }
 
         

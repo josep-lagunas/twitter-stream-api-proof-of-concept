@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Formatting;
 using System.Net.WebSockets;
 using System.Security.Cryptography;
 using System.Text;
@@ -13,16 +11,17 @@ using System.Web;
 using System.Web.Http;
 using System.Web.SessionState;
 using System.Collections.Concurrent;
-using TwitterApi;
 using Newtonsoft.Json;
-using System.IO;
-//using System.Web.WebSockets;
+using System.Collections.Generic;
 
 namespace WebSocketApi.Controllers
 {
     public class WebSocketController : ApiController, IRequiresSessionState
     {
-        static ConcurrentDictionary<ConnectionCredentials, Connection> clientsConnections = new ConcurrentDictionary<ConnectionCredentials, Connection>();
+        protected static ConcurrentDictionary<ConnectionCredentials, Connection> clientsConnections = new ConcurrentDictionary<ConnectionCredentials, Connection>();
+        protected static ConcurrentDictionary<ServerEvents, Dictionary<string, ConnectionCredentials>> serverEventsSubscriptors = 
+            new ConcurrentDictionary<ServerEvents, Dictionary<string, ConnectionCredentials>>();
+        protected static object sendLocker = new object();
 
         [Route("api/request-ws-token")]
         [HttpGet]
@@ -32,15 +31,9 @@ namespace WebSocketApi.Controllers
             {
                 var context = Request.Properties["MS_HttpContext"] as HttpContextWrapper;
 
-                string sessionId = Guid.NewGuid().ToString();
                 string clientId = Guid.NewGuid().ToString();
+                string sessionId = Guid.NewGuid().ToString();
 
-                if (CheckExistClientConnection(clientId, sessionId))
-                {
-                    var response = Request.CreateResponse(HttpStatusCode.Conflict, "Connection already in use for client.");
-                    return ResponseMessage(response);
-                }
-                
                 ConnectionCredentials connectionCredentials = new ConnectionCredentials(clientId, sessionId);
 
                 if (!AddNewCredentialsWithOutConnection(connectionCredentials, null))
@@ -61,7 +54,14 @@ namespace WebSocketApi.Controllers
             try
             {
                 clientsConnections.AddOrUpdate(connectionCredentials, connection,
-                    (creds, conn) => { return conn; });
+                    (creds, conn) =>
+                    {
+                        if (conn == null)
+                        {
+                            return connection;
+                        }
+                        return conn;
+                    });
                 return true;
             }
             catch (Exception)
@@ -70,19 +70,183 @@ namespace WebSocketApi.Controllers
             }
         }
 
+        [Route("api/subscribe-server-events/{clientId}")]
+        [HttpPost]
+        public IHttpActionResult SubscribeServerEvents(string clientId, [FromBody] List<ServerEventsDTO> serverEventsDTO)
+        {
+            ConnectionCredentials cc = GetConnectionCredential(clientId);
+            if (cc == null)
+            {
+                return ResponseMessage(Request.CreateResponse(HttpStatusCode.Unauthorized, "Unknows clientId."));
+            }
+
+            if (!ParseServerEventsFromServerEventsDTO(serverEventsDTO, out List<ServerEvents> serverEvents))
+            {
+                return ResponseMessage(Request.CreateResponse(
+                       HttpStatusCode.Conflict,
+                       String.Format("Unknown server event.")));
+            }
+            
+            SubscribeClientToEvents(clientId, serverEvents);
+            return ResponseMessage(Request.CreateResponse(HttpStatusCode.OK));
+        }
+
+        [Route("api/unsubscribe-server-events/{clientId}")]
+        [HttpPost]
+        public IHttpActionResult UnsubscribeServerEvents(string clientId, [FromBody] List<ServerEventsDTO> serverEventsDTO)
+        {
+            ConnectionCredentials cc = GetConnectionCredential(clientId);
+            if (cc == null)
+            {
+                return ResponseMessage(Request.CreateResponse(HttpStatusCode.Unauthorized, "Unknows clientId."));
+            }
+            if (!ParseServerEventsFromServerEventsDTO(serverEventsDTO, out List<ServerEvents> serverEvents))
+            {
+                return ResponseMessage(Request.CreateResponse(
+                       HttpStatusCode.Conflict,
+                       String.Format("Unknown server event.")));
+            }
+
+            UnsubscribeClientFromEvents(clientId, serverEvents);
+            return ResponseMessage(Request.CreateResponse(HttpStatusCode.OK));
+        }
+
+        protected void NotifyServerEventAsync(ServerEvents serverEvent, object data)
+        {
+            serverEventsSubscriptors.TryGetValue(serverEvent, out Dictionary<string, ConnectionCredentials> subscriptors);
+            WebsocketDataPackage package = GenerateSignedPackage("API", data);
+            if (subscriptors != null)
+            {
+                subscriptors.Values.ToList().ForEach(cc =>
+                {
+                    if (cc.ConnectionSet)
+                    {
+                        NotifyToClient(cc, package);
+                    }
+                });
+            }
+           
+        }
+
+        private bool NotifyToClient(ConnectionCredentials cc, WebsocketDataPackage package)
+        {
+            if (clientsConnections.TryGetValue(cc, out Connection connection)){
+                string jsonData = JsonConvert.SerializeObject(package);
+                Byte[] bytesToSend = System.Text.Encoding.UTF8.GetBytes(jsonData);
+                try
+                {
+                    lock (sendLocker)
+                    {
+                        connection.webSocket.SendAsync(new ArraySegment<byte>(bytesToSend),
+                                  WebSocketMessageType.Text, true, new CancellationToken());
+                        return true;
+                    }
+                }catch(Exception ex)
+                {
+                    Exception e = ex;                    
+                }
+            }
+            return false;
+        }
+
+        private bool ParseServerEventsFromServerEventsDTO(List<ServerEventsDTO> serverEventsDTO, out List<ServerEvents> serverEvents)
+        {
+
+            serverEvents = new List<ServerEvents>();
+            int i = 0;
+            while (i < serverEventsDTO.Count)
+            {
+                try
+                {
+                    ServerEvents serverEvent = (ServerEvents)serverEventsDTO[i].Id;
+                    if (serverEvent.ToString().ToUpper() != serverEventsDTO[i].Name.ToUpper())
+                    {
+                        return false;
+                    }
+                    serverEvents.Add(serverEvent);
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+                i++;
+            }
+
+            return true;
+        }
+
+        private bool SubscribeClientToEvents(string clientId, List<ServerEvents> eventsToSubscribe)
+        {
+            ConnectionCredentials connectionCredentials = GetConnectionCredential(clientId);
+            if (connectionCredentials == null)
+            {
+                return false;
+            }
+
+            eventsToSubscribe.ForEach(serverEvent =>
+            {
+                serverEventsSubscriptors.AddOrUpdate(serverEvent,
+                    (subscriptors) =>
+                    {
+                        Dictionary<string, ConnectionCredentials> connections = new Dictionary<string, ConnectionCredentials>();
+                        connections.Add(connectionCredentials.ClientId, connectionCredentials);
+                        return connections;
+                        
+                    },
+                    (ev, subscriptors) =>
+                    {
+                        if (!subscriptors.ContainsKey(connectionCredentials.ClientId))
+                        {
+                            subscriptors.Add(connectionCredentials.ClientId, connectionCredentials);
+                        }
+                        return subscriptors;
+                    });
+            });
+
+            return true;
+            
+        }
+
+        private bool UnsubscribeClientFromEvents(string clientId, List<ServerEvents> eventsToUnsubscribe)
+        {
+            ConnectionCredentials connectionCredentials = GetConnectionCredential(clientId);
+            if (connectionCredentials == null)
+            {
+                return false;
+            }
+            eventsToUnsubscribe.ForEach(serverEvent =>
+            {
+                Dictionary<string, ConnectionCredentials> subscriptors = new Dictionary<string, ConnectionCredentials>();
+                if (serverEventsSubscriptors.TryGetValue(serverEvent, out subscriptors))
+                {
+                    subscriptors.Remove(clientId);
+                    if (subscriptors.Count == 0)
+                    {
+                        serverEventsSubscriptors.TryRemove(serverEvent, out Dictionary<string, ConnectionCredentials> value);
+                    }
+                }
+            });
+            return true;
+        }
+
         private Boolean BindConnection(ConnectionCredentials connectionCredentials, Connection connection)
         {
-            return AddNewCredentialsWithOutConnection(connectionCredentials, connection);
+            if (AddNewCredentialsWithOutConnection(connectionCredentials, connection))
+            {
+                connectionCredentials.connected();
+                return true;
+            }
+            return false;
         }
 
-        private ConnectionCredentials GetConnectionCredential(string clientId)
+        protected ConnectionCredentials GetConnectionCredential(string clientId)
         {
-            return clientsConnections.Keys.First(c => { return c.ClientId == clientId; });
+            return clientsConnections.Keys.FirstOrDefault(c => { return c.ClientId == clientId; });
         }
 
-        private bool CheckExistClientConnection(string clientId, string sessionId)
-        {            
-            return clientsConnections.Keys.FirstOrDefault(c => { return c.SessionId == sessionId; }) != null;
+        public virtual IHttpActionResult GetAvailableServerEvents()
+        {
+            return ResponseMessage(Request.CreateResponse(HttpStatusCode.OK, new List<ServerEvents>()));
         }
 
         [Route("api/connect-websocket")]
@@ -92,19 +256,6 @@ namespace WebSocketApi.Controllers
             var context = Request.Properties["MS_HttpContext"] as HttpContextWrapper;
             if (context.IsWebSocketRequest)
             {
-                
-                //clientID, not the ws-token which must be used to calculated SHA1 of the Data sent.
-                //string clientId = Request.Headers.GetValues("clientid").FirstOrDefault();
-                //string wsToken = Request.Headers.GetValues("wstoken").FirstOrDefault();
-
-                //ConnectionCredentials connCred = GetConnectionCredential(clientId);
-
-                //trying to register connection (WebSocket) with and unknown client id
-                /*if (connCred == null)
-                {
-                    ResponseMessage(Request.CreateResponse(HttpStatusCode.Forbidden, "Unknown clientid."));
-                }*/
-                                
                 context.AcceptWebSocketRequest(WebSocketRequestHandler);
              
                 HttpResponseMessage response = GetRegisterResponse();
@@ -131,20 +282,14 @@ namespace WebSocketApi.Controllers
             //Gets the current WebSocket object. 
             WebSocket webSocket = webSocketContext.WebSocket;
 
-            string clientId = webSocketContext.Headers.Get("client-connection-id");
-            string hashedKey = webSocketContext.Headers.Get("client-key");
-
             //check the integrity of the connection
             
-            //Connection streamConnection = new Connection();
-            //streamConnections.Add(streamConnection);
-
             /*We define a certain constant which will represent 
             size of received data. It is established by us and  
             we can set any value. We know that in this case the size of the sent 
             data is very small. 
             */
-            const int maxMessageSize = 1024;
+            const int maxMessageSize = 512;
 
             //Buffer for received bits. 
             var receivedDataBuffer = new ArraySegment<Byte>(new Byte[maxMessageSize]);
@@ -158,6 +303,7 @@ namespace WebSocketApi.Controllers
                 WebSocketReceiveResult webSocketReceiveResult =
                   await webSocket.ReceiveAsync(receivedDataBuffer, cancellationToken);
 
+                bool errorDetected = false;
                 //If input frame is cancelation frame, send close command. 
                 if (webSocketReceiveResult.MessageType == WebSocketMessageType.Close)
                 {
@@ -166,40 +312,73 @@ namespace WebSocketApi.Controllers
                 }
                 else
                 {
-                    byte[] payloadData = receivedDataBuffer.Array.Where(b => b != 0).ToArray();
-                    
+                    byte[] payloadData = receivedDataBuffer.Array.ToList().GetRange(0, webSocketReceiveResult.Count).ToArray();
                     WebsocketDataPackage package = GetPackage(ref payloadData);
 
                     string clientWsToken = GetConnectionCredential(package.clientId).HashedKey;
 
                     if (!CheckDataIntegrity(package.Data, package.HashedKey, clientWsToken))
                     {
-                        await webSocket.CloseAsync(WebSocketCloseStatus.ProtocolError, "corrupted package received", cancellationToken);
+                        errorDetected = true;
+                        byte[] serializedData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(package.Data) + clientWsToken);
+                        string receivedHashedKey = Convert.ToBase64String(SHA1.Create().ComputeHash(serializedData));
+
+                        string message =
+                        String.Format("Corrupted package: SHA1 received: {0} SHA1 expected: {1}", receivedHashedKey, package.HashedKey);
+                        Byte[] bytesToSend = System.Text.Encoding.UTF8.GetBytes(message);
+
+                        //Sends data back. 
+                        await webSocket.SendAsync(new ArraySegment<byte>(bytesToSend),
+                          WebSocketMessageType.Text, true, cancellationToken);
                     }
-                   
                     
-                    var newString =
-                      String.Format("Hello, package with hashed key: " + package.HashedKey + " validated! Time {0}", DateTime.Now.ToString());
-                    Byte[] bytes = System.Text.Encoding.UTF8.GetBytes(newString);
-                    
-                    //Sends data back. 
-                    await webSocket.SendAsync(new ArraySegment<byte>(bytes),
-                      WebSocketMessageType.Text, true, cancellationToken);
+                    if (!errorDetected)
+                    {
+                        ConnectionCredentials cc = GetConnectionCredential(package.clientId);
+                        if (!cc.ConnectionSet) {
+                            Connection conn = new Connection(cc, webSocket);
+                            BindConnection(GetConnectionCredential(package.clientId), conn);
+                        }
+                        var newString =
+                          String.Format("Hello, package with hashed key: " + package.HashedKey + " validated! Time {0}", DateTime.Now.ToString());
+                        Byte[] bytes = System.Text.Encoding.UTF8.GetBytes(newString);
+
+                        //Sends data back. 
+                        await webSocket.SendAsync(new ArraySegment<byte>(bytes),
+                          WebSocketMessageType.Text, true, cancellationToken);
+                    }
                 }
             }
         }
 
         private WebsocketDataPackage GetPackage(ref byte[] payloadData)
         {
-            //Because we know that is a string, we convert it. 
-            string receiveString =
-              System.Text.Encoding.UTF8.GetString(payloadData, 0, payloadData.Length);
+            try
+            {
+                //Because we know that is a string, we convert it. 
+                string receiveString =
+                  System.Text.Encoding.UTF8.GetString(payloadData, 0, payloadData.Length);
 
-            return JsonConvert.DeserializeObject<WebsocketDataPackage>(receiveString);
+                return JsonConvert.DeserializeObject<WebsocketDataPackage>(receiveString);
+            }catch(Exception ex)
+            {
+                Exception e = ex;
+                throw ex;
+            }
+        }
+
+        private WebsocketDataPackage GenerateSignedPackage(string clientId, object data)
+        {
+            //string clientWsToken = GetConnectionCredential(clientId).HashedKey;
+            byte[] serializedData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data));
+            string hashedKey = Convert.ToBase64String(SHA1.Create().ComputeHash(serializedData));
+            return new WebsocketDataPackage(clientId, hashedKey, data);
         }
 
         private bool CheckDataIntegrity(object Data, string expectedHashedKey, string clientWsToken)
         {
+            //decimal values deserialization can cause error due decimal loss of precision. 
+            //work around: send decimal values as string.
             byte[] serializedData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Data) + clientWsToken);
             string hashedKey = Convert.ToBase64String(SHA1.Create().ComputeHash(serializedData));
             return expectedHashedKey == hashedKey;

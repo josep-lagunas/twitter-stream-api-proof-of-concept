@@ -41,23 +41,49 @@
                     serverConnector.getInstance().callRESTServerMethod(settings);
                 },
                 openWebSocketConnection: function (clientId, wsToken) {
-                    /*
-                    var settings = {
-                        verb: "GET",
-                        async: false,
-                        getAsJon: getAsJson,
-                        method: "api/connect-websocket",
-                        headers: { 'clientid': clientId, 'wstoken': wsToken }
-                    };
-
-                    serverConnector.getInstance().callRESTServerMethod(settings);
-                    */
+                   
                     var settings = {
                         verb: "GET",
                         method: "api/connect-websocket"                      
                     };
                     
                     return serverConnector.getInstance().callWebSocketMethod(settings);
+                },
+                startTwitterStream: function (isAsync, getAsJson, clientId, successCallback, errorCallback,
+                    beforeSendCallback, completedCallback) {
+
+                    var settings = {
+                        verb: "POST",
+                        async: isAsync,
+                        getAsJon: getAsJson,
+                        method: "api/subscribe-server-events",
+                        pathParameters: [{ key: 'clientId', value: clientId }],
+                        bodyParameters: [{ Id: 1, Name: "GET_TWEETS" }],
+                        callback: successCallback,
+                        errorCallback: errorCallback,
+                        beforeSendCallback: beforeSendCallback,
+                        completedCallback: completedCallback
+                    }
+
+                    return serverConnector.getInstance().callRESTServerMethod(settings);
+                },
+                stopTwitterStream: function (isAsync, getAsJson, clientId, successCallback, errorCallback,
+                    deforeSendCallback, completedCallback) {
+
+                    var settings = {
+                        verb: "POST",
+                        async: isAsync,
+                        getAsJon: getAsJson,
+                        method: "api/unsubscribe-server-events",
+                        pathParameters: [{ key: 'clientId', value: clientId }],
+                        bodyParameters: [{ Id: 1, Name: "GET_TWEETS" }],
+                        callback: successCallback,
+                        errorCallback: errorCallback,
+                        beforeSendCallback: beforeSendCallback,
+                        completedCallback: completedCallback
+                    }
+
+                    return serverConnector.getInstance().callRESTServerMethod(settings);
                 }
             };
         };
