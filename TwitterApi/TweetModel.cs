@@ -69,6 +69,12 @@ namespace TwitterClient.Models
         public Attributes attributes { get; set; }
     }
 
+    public class Coordinates
+    {
+        public string type { get; set; }
+        public List<double> coordinates { get; set; }
+    }
+
     public class Entities
     {
         public List<object> hashtags { get; set; }

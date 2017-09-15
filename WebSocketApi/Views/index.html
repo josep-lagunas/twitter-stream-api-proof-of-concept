@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>realtime tweets</title>
+    <script src="../javascript/security/functions_cryptography.js"></script>
+    <script src="../javascript/security/enc-base64.js"></script>
+    <script src="../javascript/jquery/v.1.6.4/jquery-1.6.4.min.js"></script>
+    <script src="../javascript/util/guid.js"></script>
+    <script src="../javascript/realtime/eventSubscribersBus.js"></script>
+    <script src="../javascript/realtime/serverFeedBackEvent.js"></script>
+    <script src="../javascript/api/clientapi.js"></script>
+    <script src="../javascript/api/middleware.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function(){
+            $("#main-container").children().remove();            
+        });
+
+        var wsToken;
+        var clientid;
+        var connection;
+        /*
+        var connection = new WebSocket('ws://localhost:51500/api/connect-websocket');
+
+        connection.onopen = function(ev) {
+            console.log("connected");
+            var package = { id: "A0409", name: "Josep", surnames: "Lagunas Calpe", number: 669989076 };
+
+            var strPackage = JSON.stringify(package);
+
+            var hashedParameters = CryptoJS.enc.Base64.stringify(CryptoJS.SHA1(strPackage));
+
+            var transferPackage = { HashedKey: hashedParameters, Data: package };
+            
+            connection.send(JSON.stringify(transferPackage));            
+        }
+
+        connection.onmessage = function (e) {
+            console.log(e.data);
+        }
+
+        */
+    
+        //Request registration token and clientId
+        clientApi.getInstance().requestWSToken(false, true,
+            function (status, data) {
+
+                wsToken = data.wstoken;
+                clientid = data.clientid;
+
+                console.log("client id: " + data.clientid + " wstoken: " + wsToken);
+
+                connection = clientApi.getInstance().openWebSocketConnection(clientid, wsToken);
+                connection.onopen = function (clientId, wsToken) {
+                    return function (e) {
+                        onWSOpen(clientId, wsToken);
+                    }
+                }(clientid, wsToken);
+                
+                connection.onmessage = onWSMessage;
+                connection.onclose = onWSClose;
+
+                clientApi.getInstance().startTwitterStream(true, true, clientid,
+                    function (status, data) {
+                        console.log("subscribed to Twitter Stream");
+                    }, function (error) {
+                        console.log(error);
+                    });
+
+            },
+            function (error) {
+                console.log(error);
+            });
+        
+        function onWSMessage(e) {
+            try {
+                console.log(e.data);
+                var tweet = JSON.parse(e.data).Data;
+                if (tweet != null && tweet.user != null && tweet.user.screen_name != null) {
+                    var username = tweet.user.hasOwnProperty("screen_name")
+                        && tweet.user.screen_name != null && tweet.user.screen_name != undefined ? tweet.user.screen_name : "Unknown user";
+                    $("#main-container").append("<p style='color: yellow;'>" + username + "</p>");
+                    var elem = $("<p style='color: green;'>" + tweet.text + "</p></br>").appendTo("#main-container");
+                    window.scrollTo(0, $(elem).offset().top);
+                }
+            } catch (e) { }
+        }
+
+        function onWSError(Error) {
+            console.log(Error);
+        }
+
+        function onWSOpen(clientId, wsToken) {
+            DoWork(connection, wsToken, clientid);
+            console.log("Connected.");
+        }
+
+        function onWSClose() {
+            console.log("close");
+        }
+
+        function DoWork(connection, wsToken, clientId) {
+                        
+            for (var i = 0; i < 1; i++) {
+
+                var dataPackage = getTestDataPackage();
+
+                var transferPackage = getSignedTransferPackage(dataPackage);
+                
+                connection.send(JSON.stringify(transferPackage));
+            }
+        }
+
+        function getTestDataPackage() {
+            if (new Date().getMilliseconds() % 2 == 0) {
+                return { id: "A0409", name: "Josep", surnames: "Lagunas Calpe", number: (Math.random() * 100  + 1).toString() };
+            } else {
+                return { serial: { a: 1, b: 2 }, types: [{ t1: 'a' }, { t2: 'b' }], timeStamp: (Math.random() * 100 + 1).toString() };
+            }
+        }
+
+        function getSignedTransferPackage(data) {
+            var strPackage = JSON.stringify(data);
+            var hashedParameters = CryptoJS.enc.Base64.stringify(CryptoJS.SHA1(strPackage + wsToken));
+            var transferPackage = { clientId: clientid, HashedKey: hashedParameters, Data: data };
+            //$("#main-container").append("<p style='color: yellow;'>" + JSON.stringify(data) + '</p>');
+            return transferPackage;
+        }
+        
+    </script>
+</head>
+<body style="background-color:#000;">
+    <div id="main-container" style="width:100%; height:auto; color: forestgreen; font-family: system-ui; width: 95%; margin-left: 2.5%; margin-top: 30px;">
+
+    </div>
+</body>
+</html>
