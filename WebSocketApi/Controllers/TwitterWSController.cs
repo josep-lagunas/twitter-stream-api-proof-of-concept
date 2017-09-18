@@ -29,8 +29,8 @@ namespace WebSocketApi.Controllers
 
                     TwitterApiClient.getInstance().streamTweetByHashTagEvent += TwitterClient_streamTweetByHashTagEvent;
 
-                    List<string> keyWords = new List<string>() { "twitter" };
-                    List<string> languages = new List<string>() { "en" };
+                    List<string> keyWords = new List<string>(); 
+                    List<string> languages = new List<string>();
                     List<MapBoxCoordinates> mapBoxCoordinates = new List<MapBoxCoordinates>() { new MapBoxCoordinates(-180, -90, 180, 90) };
                     TwitterApiClient.getInstance().GetTweetsByHashtags(keyWords, languages, mapBoxCoordinates);
                 });

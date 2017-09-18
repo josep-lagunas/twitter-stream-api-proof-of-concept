@@ -77,12 +77,20 @@
             try {
                 console.log(e.data);
                 var tweet = JSON.parse(e.data).Data;
-                if (tweet != null && tweet.user != null && tweet.user.screen_name != null) {
-                    var username = tweet.user.hasOwnProperty("screen_name")
+                if (tweet != null && tweet.user != null && tweet.user.screen_name != null && tweet.geo != null) {
+
+                    var latitude = tweet.geo.coordinates[0];
+                    var longitude = tweet.geo.coordinates[1];
+
+                    geoTweets.push(new google.maps.LatLng(latitude, longitude));
+
+                    /*var username = tweet.user.hasOwnProperty("screen_name")
                         && tweet.user.screen_name != null && tweet.user.screen_name != undefined ? tweet.user.screen_name : "Unknown user";
-                    $("#main-container").append("<p style='color: yellow;'>" + username + "</p>");
+                    /*$("#main-container").append("<p style='color: yellow;'>" + username + "</p>");
                     var elem = $("<p style='color: green;'>" + tweet.text + "</p></br>").appendTo("#main-container");
-                    window.scrollTo(0, $(elem).offset().top);
+                    window.scrollTo(0, $(elem).offset().top);*/
+
+                   
                 }
             } catch (e) { }
         }
@@ -127,8 +135,31 @@
             //$("#main-container").append("<p style='color: yellow;'>" + JSON.stringify(data) + '</p>');
             return transferPackage;
         }
+               
+        var map, heatmap, geoTweets;
         
+        function initMap() {
+
+            var height = (window.innerHeight - 40) + "px";
+
+            $("#main-container").css("height", height);
+            geoTweets = new google.maps.MVCArray();
+            map = new google.maps.Map(document.getElementById('main-container'), {
+                zoom: 3,
+                center: { lat: 41.380876, lng: 2.159059 }, 
+                mapTypeId: 'satellite'
+            });
+            heatmap = new google.maps.visualization.HeatmapLayer({
+                data: geoTweets,
+                map: map
+            });
+        }
+
     </script>
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAO4IHmHwIFhH-2q9DLu8SvanZSuBVsKyw&libraries=visualization&callback=initMap">
+    </script>
+
 </head>
 <body style="background-color:#000;">
     <div id="main-container" style="width:100%; height:auto; color: forestgreen; font-family: system-ui; width: 95%; margin-left: 2.5%; margin-top: 30px;">
