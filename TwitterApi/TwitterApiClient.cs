@@ -169,7 +169,9 @@ namespace TwitterApi
         {
             checkCredentials();
 
-            if (hashtags == null || hashtags.Count() == 0)
+            if ((hashtags == null || hashtags.Count() == 0) 
+                && (languages == null || languages.Count() == 0) 
+                && (mapBoxCoordinates == null || mapBoxCoordinates.Count() == 0))
             {
                 throw new ArgumentException("At least one keyword must exists.");
             }
