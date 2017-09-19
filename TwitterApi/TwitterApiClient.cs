@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using TwitterClient.Models;
 using System.Globalization;
 using Utils;
+using TwitterApi.Controllers;
 
 namespace TwitterApi
 {
@@ -61,7 +62,7 @@ namespace TwitterApi
 
         public delegate void StreamTweetByHashtagHandler(object sender, TweetStreamArgs e);
 
-        public event StreamTweetByHashtagHandler streamTweetByHashTagEvent;
+        public event StreamTweetByHashtagHandler StreamTweetByHashTagEvent;
 
         private enum UseCase
         {
@@ -264,9 +265,46 @@ namespace TwitterApi
 
             // Build the OAuth HTTP Header from the data.
             string oAuthHeader = GenerateOAuthHeader(data, url);
-                        
+            List<Header> headers = new List<Header>
+            {
+                Header.CreateHeader("Authorization", oAuthHeader)
+            };
             MemoryStream ms = new MemoryStream();
-            byte[] postParameters = Encoding.UTF8.GetBytes(String.Join("&", data.Where(kvp => !kvp.Key.StartsWith("oauth_")).Select(kvp => kvp.Key + "=" + kvp.Value)));
+            string postParameters = String.Join("&",
+                    data.Where(kvp => !kvp.Key.StartsWith("oauth_"))
+                    .Select(kvp => kvp.Key + "=" + kvp.Value));
+            
+            List<Header> contentHeaders = new List<Header>
+            {
+                Header.CreateHeader("Content-Type", "application/x-www-form-urlencoded"),
+                Header.CreateHeader("Content-Length", postParameters.Length.ToString())
+            };
+
+            await HttpInvoker.GetInstance().HttpPostStreamInvoke(url, headers, contentHeaders,
+                HttpCompletionOption.ResponseHeadersRead, postParameters,
+                TimeSpan.FromMilliseconds(Timeout.Infinite),
+                (target, e) =>
+                {
+                    string json = e.Result.HttpContent;
+                    if (SerializationServices.GetInstance.TryParse<Tweet>(json, out Tweet tweet))
+                    {
+                        StreamTweetByHashTagEvent?.Invoke(this, new TweetStreamArgs(tweet));
+                    }
+                });                        
+        }
+            private async void ConsumeStreamAPIDoWorkOld(string url, Dictionary<string, string> data)
+        {
+            AddOauthParameters(url, data);
+
+            // Build the OAuth HTTP Header from the data.
+            string oAuthHeader = GenerateOAuthHeader(data, url);
+
+            MemoryStream ms = new MemoryStream();
+
+            byte[] postParameters =
+                Encoding.UTF8.GetBytes(String.Join("&",
+                    data.Where(kvp => !kvp.Key.StartsWith("oauth_"))
+                    .Select(kvp => kvp.Key + "=" + kvp.Value)));
 
             using (StreamContent streamContent = new StreamContent(new MemoryStream(postParameters)))
             {
@@ -279,34 +317,34 @@ namespace TwitterApi
                     httpClient.DefaultRequestHeaders.Add("Authorization", oAuthHeader);
                     httpClient.BaseAddress = new Uri(url);
 
-                    var request = new HttpRequestMessage(HttpMethod.Post, url);
-
-                    request.Content = streamContent;
-
-                    await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ContinueWith(async responseTask =>
+                    var request = new HttpRequestMessage(HttpMethod.Post, url)
                     {
-                        using (HttpResponseMessage response = responseTask.Result)
-                        {
-                            await response.Content.ReadAsStreamAsync().ContinueWith(streamTask =>
+                        Content = streamContent
+                    };
+                    await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead)
+                        .ContinueWith(async responseTask =>
                             {
-                                using (StreamReader streamReader = new StreamReader(streamTask.Result))
+                                using (HttpResponseMessage response = responseTask.Result)
                                 {
-                                    while (!streamReader.EndOfStream)
+                                    await response.Content.ReadAsStreamAsync().ContinueWith(streamTask =>
                                     {
-                                        string json = streamReader.ReadLine();
-                                        if (SerializationServices.getInstance.tryParse<Tweet>(json, out Tweet tweet))
+                                        using (StreamReader streamReader = new StreamReader(streamTask.Result))
                                         {
-                                            streamTweetByHashTagEvent?.Invoke(this, new TweetStreamArgs(tweet));
+                                            while (!streamReader.EndOfStream)
+                                            {
+                                                string json = streamReader.ReadLine();
+                                                if (SerializationServices.GetInstance.TryParse<Tweet>(json, out Tweet tweet))
+                                                {
+                                                    StreamTweetByHashTagEvent?.Invoke(this, new TweetStreamArgs(tweet));
+                                                }
+                                            }
                                         }
-                                    }
+                                    });
                                 }
                             });
-                        }
-                    });
-
                 }
             }
-        }
+        }             
                 
         private async Task<string> ConsumeAPIDoWork(string url, Dictionary<string, string> data)
         {

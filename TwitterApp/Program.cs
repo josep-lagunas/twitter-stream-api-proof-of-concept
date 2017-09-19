@@ -40,7 +40,7 @@ namespace TwitterApp
                     , "430727651-vHPtvToq1UK3RHm3tMrQmQA4BW3PdJlxAopL53We"
                     , "rEArJ1vb8Uuh24WTeh9tW8DKFPNWfEvEFte3jdfUkXaPC");
 
-            TwitterApiClient.getInstance().streamTweetByHashTagEvent += Program_StreamTweetEvent;
+            TwitterApiClient.getInstance().StreamTweetByHashTagEvent += Program_StreamTweetEvent;
             TwitterApiClient.getInstance().GetTweetsByHashtags(keywords, languages, mapBoxCoordinates);
 
 

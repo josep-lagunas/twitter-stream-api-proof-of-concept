@@ -15,6 +15,8 @@
         function init() {
 
             //Initialize baseURL for serverConnector
+            // uncomment for aws host
+            //serverConnector.setBaseURL("http://ec2-52-49-179-53.eu-west-1.compute.amazonaws.com/twitter");
             serverConnector.setBaseURL("http://localhost:51500");
             //Singleton
 
