@@ -13,10 +13,11 @@ using System.Web.SessionState;
 using System.Collections.Concurrent;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Web.Http.Dependencies;
 
 namespace WebSocketApi.Controllers
 {
-    public class WebSocketController : ApiController, IRequiresSessionState
+    public class WebSocketController : ApiController, IRequiresSessionState, IDependencyResolver
     {
         protected static ConcurrentDictionary<ConnectionCredentials, Connection> clientsConnections = new ConcurrentDictionary<ConnectionCredentials, Connection>();
         protected static ConcurrentDictionary<ServerEvents, Dictionary<string, ConnectionCredentials>> serverEventsSubscriptors = 
@@ -43,7 +44,7 @@ namespace WebSocketApi.Controllers
                 //return token to be sent in every packet with the form { key: SHA1 of data field, data: { parameters in format {k : v} }
                 return ResponseMessage(Request.CreateResponse(HttpStatusCode.Accepted, new WebSocketToken(connectionCredentials.ClientId, connectionCredentials.HashedKey)));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return ResponseMessage(Request.CreateResponse(HttpStatusCode.InternalServerError, "Unexpected error."));
             }            
@@ -128,7 +129,7 @@ namespace WebSocketApi.Controllers
            
         }
 
-        private bool NotifyToClient(ConnectionCredentials cc, WebsocketDataPackage package)
+        private static bool NotifyToClient(ConnectionCredentials cc, WebsocketDataPackage package)
         {
             if (clientsConnections.TryGetValue(cc, out Connection connection)){
                 string jsonData = JsonConvert.SerializeObject(package);
@@ -165,7 +166,7 @@ namespace WebSocketApi.Controllers
                     }
                     serverEvents.Add(serverEvent);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     return false;
                 }
@@ -383,6 +384,20 @@ namespace WebSocketApi.Controllers
             string hashedKey = Convert.ToBase64String(SHA1.Create().ComputeHash(serializedData));
             return expectedHashedKey == hashedKey;
         }
-        
+
+        public IDependencyScope BeginScope()
+        {
+            throw new NotImplementedException();
+        }
+
+        public object GetService(Type serviceType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<object> GetServices(Type serviceType)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

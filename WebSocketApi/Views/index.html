@@ -77,20 +77,40 @@
             try {
                 console.log(e.data);
                 var tweet = JSON.parse(e.data).Data;
+                updateTweetInfo(tweet);
                 if (tweet != null && tweet.user != null && tweet.user.screen_name != null && tweet.geo != null) {
+
 
                     var latitude = tweet.geo.coordinates[0];
                     var longitude = tweet.geo.coordinates[1];
-                    updateTweetInfo(tweet);
-                    geoTweets.push(new google.maps.LatLng(latitude, longitude));
+                    var latLong = new google.maps.LatLng(latitude, longitude);
+
+                    var prevPoint = null;
+
+                    var pointsCount = poly.getPath().getArray().length;
+
+                    if (pointsCount == 1) {
+                        prevPoint = poly.getPath().getArray()[0];
+                    } else if (pointsCount == 2) {
+                        prevPoint = poly.getPath().getArray()[1];
+                    }
+                    
+                    //poly.setMap(null);
+                    if (prevPoint != null) {
+                        poly.getPath().push(prevPoint);
+                    } else {
+                        poly.getPath().getArray().splice(0, 1);
+                    }
+                    poly.getPath().push(latLong);
+                    //poly.setMap(map);
+                    geoTweets.push(latLong);
+
 
                     /*var username = tweet.user.hasOwnProperty("screen_name")
                         && tweet.user.screen_name != null && tweet.user.screen_name != undefined ? tweet.user.screen_name : "Unknown user";
                     /*$("#main-container").append("<p style='color: yellow;'>" + username + "</p>");
                     var elem = $("<p style='color: green;'>" + tweet.text + "</p></br>").appendTo("#main-container");
                     window.scrollTo(0, $(elem).offset().top);*/
-
-                   
                 }
             } catch (e) { }
         }
@@ -136,14 +156,16 @@
             return transferPackage;
         }
                
-        var map, heatmap, geoTweets;
+        var map, heatmap, geoTweets, poly;
         var tweetsCounter = 0;
 
         function updateTweetInfo(tweet) {
             tweetsCounter++;
             $("#tweets-counter").text("Tweets count: " + tweetsCounter);
-            $("#tweet-location").text("located at latitude: " + tweet.geo.coordinates[0].toFixed(4) +
-                " , longitue: " + tweet.geo.coordinates[1].toFixed(4));
+            if (tweet.coordinates != null) {
+                $("#tweet-location").text("located at latitude: " + tweet.geo.coordinates[0].toFixed(4) +
+                    " , longitue: " + tweet.geo.coordinates[1].toFixed(4));
+            }
             $("#tweet-user").text("Author: " + tweet.user.screen_name);
             $("#tweet-content").text(tweet.text);
         }
@@ -163,6 +185,13 @@
                 data: geoTweets,
                 map: map
             });
+
+            poly = new google.maps.Polyline({
+                strokeColor: '#6ce829',
+                strokeOpacity: 0.65,
+                strokeWeight: 6
+            });
+            poly.setMap(map);
         }
 
     </script>

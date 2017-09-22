@@ -104,7 +104,7 @@ namespace Utils
                 }
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 item = default(T);
                 return false;

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Utils;
@@ -109,32 +110,44 @@ namespace TwitterApi.Controllers
             return instance;
         }
 
-        public async Task HttpPostStreamInvoke(string url, IEnumerable<Header> headers,
+        public void HttpPostStreamInvoke(string url, IEnumerable<Header> headers,
            IEnumerable<Header> contentHeaders, HttpCompletionOption httpCompletetionOption,
-           string postParameters, TimeSpan timeOut)
+           string postParameters, TimeSpan timeOut, ref CancellationToken cancellationToken)
         {
-            await HttpStreamInvoke(url, HttpMethod.Post, headers, contentHeaders, 
-                httpCompletetionOption, postParameters, timeOut, null);
+            Task.Run(async () =>
+            {
+                await HttpStreamInvoke(url, HttpMethod.Post, headers, contentHeaders,
+                    httpCompletetionOption, postParameters, timeOut, null);
+            }, cancellationToken);
         }
-        public async Task HttpPostStreamInvoke(string url, IEnumerable<Header> headers,
+        public void HttpPostStreamInvoke(string url, IEnumerable<Header> headers,
           IEnumerable<Header> contentHeaders, HttpCompletionOption httpCompletetionOption,
-          string postParameters, TimeSpan timeOut, HttpResponseHandler httpResponseHandler)
+          string postParameters, TimeSpan timeOut, HttpResponseHandler httpResponseHandler, ref CancellationToken cancellationToken)
         {
-            await HttpStreamInvoke(url, HttpMethod.Post, headers, contentHeaders, 
-                httpCompletetionOption, postParameters, timeOut, httpResponseHandler);
+            Task.Run(async () =>
+             {
+                 await HttpStreamInvoke(url, HttpMethod.Post, headers, contentHeaders,
+                 httpCompletetionOption, postParameters, timeOut, httpResponseHandler);
+             }, cancellationToken);
         }
-        public async Task HttpGetStreamInvoke(string url, IEnumerable<Header> headers,
-           HttpCompletionOption httpCompletetionOption, TimeSpan timeOut)
+        public void HttpGetStreamInvoke(string url, IEnumerable<Header> headers,
+           HttpCompletionOption httpCompletetionOption, TimeSpan timeOut, ref CancellationToken cancellationToken)
         {
-            await HttpStreamInvoke(url, HttpMethod.Get, headers, null,
+            Task.Run(async () =>
+            {
+                await HttpStreamInvoke(url, HttpMethod.Get, headers, null,
                 httpCompletetionOption, null, timeOut, null);
+            }, cancellationToken);
         }
-        public async Task HttpGetStreamInvoke(string url, IEnumerable<Header> headers,
-            HttpCompletionOption httpCompletetionOption, TimeSpan timeOut, 
-          HttpResponseHandler httpResponseHandler)
+        public void HttpGetStreamInvoke(string url, IEnumerable<Header> headers,
+            HttpCompletionOption httpCompletetionOption, TimeSpan timeOut,
+          HttpResponseHandler httpResponseHandler, ref CancellationToken cancellationToken)
         {
-            await HttpStreamInvoke(url, HttpMethod.Get, headers, null,
+            Task.Run(async () =>
+            {
+                await HttpStreamInvoke(url, HttpMethod.Get, headers, null,
                 httpCompletetionOption, null, timeOut, httpResponseHandler);
+            }, cancellationToken);
         }
         private async Task HttpStreamInvoke(string url, HttpMethod httpMethod, IEnumerable<Header> headers,
             IEnumerable<Header> contentHeaders, HttpCompletionOption httpCompletetionOption,
