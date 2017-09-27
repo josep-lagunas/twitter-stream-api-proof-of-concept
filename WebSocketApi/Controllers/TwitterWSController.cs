@@ -20,7 +20,8 @@ namespace WebSocketApi.Controllers
         {
             this.twitterApiClient = twitterApiClient;
         }
-        
+
+        [AllowAnonymous]
         [Route("api/available-events")]
         [HttpGet]
         public override IHttpActionResult GetAvailableServerEvents()
@@ -34,20 +35,35 @@ namespace WebSocketApi.Controllers
         [HttpPost]
         public IHttpActionResult StartSTreamingTweets([FromBody] SearchSettings searchSettings)
         {
-            twitterApiClient.
-                StartStreamingTweetsByHashtags(searchSettings.KeyWords,
-                searchSettings.Languages, searchSettings.MapBoxCoordinates, (object sender, TweetStreamArgs e) => {
-                    NotifyServerEventAsync(ServerEvents.GET_TWEETS, e.Tweet);
-                });
+            string clientId = GetClientToken();
 
-            return ResponseMessage(new HttpResponseMessage(HttpStatusCode.OK));
+            if (!twitterApiClient.
+                StartStreamingTweets(clientId, searchSettings.KeyWords,
+                searchSettings.Languages, searchSettings.MapBoxCoordinates, (object sender, TweetStreamArgs e) =>
+                {
+                    NotifyServerEventAsync(clientId, ServerEvents.GET_TWEETS, e.Tweet);
+                }))
+            {
+                return ResponseMessage(new HttpResponseMessage(HttpStatusCode.Continue));
+            }
+            else
+            {
+                return ResponseMessage(new HttpResponseMessage(HttpStatusCode.OK));
+            }
         }
 
         [Route("api/stop-streaming-tweets")]
+        [RequiresAuthorization]
         [HttpPost]
         public IHttpActionResult StopSTreamingTweets()
         {
-            twitterApiClient.StopStreamingTweetsByHashTags();
+            string clientId = GetClientToken();
+          
+            if (!twitterApiClient.StopStreamingTweetsByHashTags(clientId))
+            {
+                return ResponseMessage(new HttpResponseMessage(HttpStatusCode.Forbidden)
+                { ReasonPhrase = String.Format("no client identified by {0} or service already stopped.", clientId) });
+            }
             return ResponseMessage(new HttpResponseMessage(HttpStatusCode.OK));
         }
     }

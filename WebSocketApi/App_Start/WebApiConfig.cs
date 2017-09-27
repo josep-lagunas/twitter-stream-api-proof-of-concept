@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
+using System.Web.Http.Filters;
 using TwitterApi;
 using WebSocketApi.Controllers;
 
@@ -25,7 +26,14 @@ namespace WebSocketApi
                     return instance;
                 }
         ));
+
+            RequiresAuthorizationFilter authorizationFilter = new RequiresAuthorizationFilter(WebSocketController.ClientsConnections);
+
+            container.RegisterInstance(typeof(RequiresAuthorizationFilter), authorizationFilter);
+          
             config.DependencyResolver = new UnityResolver(container);
+            
+            config.Filters.Add(authorizationFilter);
 
             // Rutas de API web
             config.MapHttpAttributeRoutes();

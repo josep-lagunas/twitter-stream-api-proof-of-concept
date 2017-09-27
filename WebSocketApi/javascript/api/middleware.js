@@ -139,6 +139,7 @@
                     if (typeof (bodyParameters) !== "string")
                         bodyParameters = JSON.stringify(bodyParameters);
 
+                    var headers = settings["headers"] || { };
 
                     var callback = settings["callback"];
                     var errorCallback = settings["errorCallback"];
@@ -149,6 +150,7 @@
                         type: verb,
                         url: _baseURL + method + pathParametersURL + queryParametersURLFormat,
                         data: bodyParameters,
+                        headers: headers,
                         dataType: "text",
                         async: async,
                         contentType: "application/json; charset=utf-8",
@@ -190,6 +192,8 @@
                     var settings = arguments[0];
 
                     var method = settings["method"];
+
+                    var headers = settings["headers"] || {};
 
                     if (method === undefined)
                         throw new Error("A method must specified");

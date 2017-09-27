@@ -148,6 +148,8 @@
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\ConnectionCredentials.cs" />
+    <Compile Include="Controllers\RequiresAuthorizationAttribute.cs" />
+    <Compile Include="Controllers\RequiresAuthorizationFilter.cs" />
     <Compile Include="Controllers\SearchSettings.cs" />
     <Compile Include="Controllers\UnityResolver.cs" />
     <Compile Include="Controllers\ServerEvents.cs" />

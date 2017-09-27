@@ -17,13 +17,20 @@ using System.Web.Http.Dependencies;
 
 namespace WebSocketApi.Controllers
 {
-    public class WebSocketController : ApiController, IRequiresSessionState, IDependencyResolver
+    [RequiresAuthorization]
+    public class WebSocketController : ApiController, IRequiresSessionState
     {
-        protected static ConcurrentDictionary<ConnectionCredentials, Connection> clientsConnections = new ConcurrentDictionary<ConnectionCredentials, Connection>();
-        protected static ConcurrentDictionary<ServerEvents, Dictionary<string, ConnectionCredentials>> serverEventsSubscriptors = 
+        private const string TokenHeaderName = "client-id";
+
+        private static ConcurrentDictionary<ConnectionCredentials, Connection> clientsConnections = new ConcurrentDictionary<ConnectionCredentials, Connection>();
+        public static ConcurrentDictionary<ConnectionCredentials, Connection> ClientsConnections => clientsConnections;
+
+        private static ConcurrentDictionary<ServerEvents, Dictionary<string, ConnectionCredentials>> serverEventsSubscriptors = 
             new ConcurrentDictionary<ServerEvents, Dictionary<string, ConnectionCredentials>>();
+        
         protected static object sendLocker = new object();
 
+        [AllowAnonymous]
         [Route("api/request-ws-token")]
         [HttpGet]
         public IHttpActionResult RequestWebSocketToken()
@@ -31,7 +38,7 @@ namespace WebSocketApi.Controllers
             try
             {
                 var context = Request.Properties["MS_HttpContext"] as HttpContextWrapper;
-
+                
                 string clientId = Guid.NewGuid().ToString();
                 string sessionId = Guid.NewGuid().ToString();
 
@@ -49,6 +56,22 @@ namespace WebSocketApi.Controllers
                 return ResponseMessage(Request.CreateResponse(HttpStatusCode.InternalServerError, "Unexpected error."));
             }            
         }    
+
+        protected string GetClientToken()
+        {
+            KeyValuePair<string, IEnumerable<string>> header = Request.Headers.FirstOrDefault(h => { return h.Key == TokenHeaderName; });
+            if (header.Equals(default(KeyValuePair<string, IEnumerable<string>>)))
+            {
+                return null;
+            }
+
+            return header.Value.FirstOrDefault();
+        }
+
+        protected bool IsAValidClientId(string clientId)
+        {
+            return GetConnectionCredential(clientId) != null;
+        }
 
         private bool AddNewCredentialsWithOutConnection(ConnectionCredentials connectionCredentials, Connection connection)
         {
@@ -71,10 +94,12 @@ namespace WebSocketApi.Controllers
             }
         }
 
-        [Route("api/subscribe-server-events/{clientId}")]
+        [Route("api/subscribe-server-events")]
         [HttpPost]
-        public IHttpActionResult SubscribeServerEvents(string clientId, [FromBody] List<ServerEventsDTO> serverEventsDTO)
+        public IHttpActionResult SubscribeServerEvents([FromBody] List<ServerEventsDTO> serverEventsDTO)
         {
+
+            string clientId = GetClientToken();
             ConnectionCredentials cc = GetConnectionCredential(clientId);
             if (cc == null)
             {
@@ -112,7 +137,20 @@ namespace WebSocketApi.Controllers
             return ResponseMessage(Request.CreateResponse(HttpStatusCode.OK));
         }
 
-        protected void NotifyServerEventAsync(ServerEvents serverEvent, object data)
+        protected void NotifyServerEventAsync(string clientId, ServerEvents serverEvent, object data)
+        {
+            serverEventsSubscriptors.TryGetValue(serverEvent, out Dictionary<string, ConnectionCredentials> subscriptors);
+            WebsocketDataPackage package = GenerateSignedPackage("API", data);
+            if (subscriptors != null)
+            {
+                    if (subscriptors[clientId].ConnectionSet)
+                    {
+                        NotifyToClient(subscriptors[clientId], package);
+                    }                
+            }           
+        }
+
+        protected void BroadcastServerEventAsync(ServerEvents serverEvent, object data)
         {
             serverEventsSubscriptors.TryGetValue(serverEvent, out Dictionary<string, ConnectionCredentials> subscriptors);
             WebsocketDataPackage package = GenerateSignedPackage("API", data);
@@ -126,7 +164,7 @@ namespace WebSocketApi.Controllers
                     }
                 });
             }
-           
+
         }
 
         private static bool NotifyToClient(ConnectionCredentials cc, WebsocketDataPackage package)
@@ -189,8 +227,10 @@ namespace WebSocketApi.Controllers
                 serverEventsSubscriptors.AddOrUpdate(serverEvent,
                     (subscriptors) =>
                     {
-                        Dictionary<string, ConnectionCredentials> connections = new Dictionary<string, ConnectionCredentials>();
-                        connections.Add(connectionCredentials.ClientId, connectionCredentials);
+                        Dictionary<string, ConnectionCredentials> connections = new Dictionary<string, ConnectionCredentials>
+                        {
+                            { connectionCredentials.ClientId, connectionCredentials }
+                        };
                         return connections;
                         
                     },
@@ -240,7 +280,7 @@ namespace WebSocketApi.Controllers
             return false;
         }
 
-        protected ConnectionCredentials GetConnectionCredential(string clientId)
+        private ConnectionCredentials GetConnectionCredential(string clientId)
         {
             return clientsConnections.Keys.FirstOrDefault(c => { return c.ClientId == clientId; });
         }
@@ -249,7 +289,8 @@ namespace WebSocketApi.Controllers
         {
             return ResponseMessage(Request.CreateResponse(HttpStatusCode.OK, new List<ServerEvents>()));
         }
-
+        
+        [AllowAnonymous]
         [Route("api/connect-websocket")]
         [HttpGet]
         public IHttpActionResult AcceptWebSocketConnection()
@@ -384,20 +425,6 @@ namespace WebSocketApi.Controllers
             string hashedKey = Convert.ToBase64String(SHA1.Create().ComputeHash(serializedData));
             return expectedHashedKey == hashedKey;
         }
-
-        public IDependencyScope BeginScope()
-        {
-            throw new NotImplementedException();
-        }
-
-        public object GetService(Type serviceType)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<object> GetServices(Type serviceType)
-        {
-            throw new NotImplementedException();
-        }
+               
     }
 }

@@ -112,48 +112,52 @@ namespace TwitterApi.Controllers
 
         public void HttpPostStreamInvoke(string url, IEnumerable<Header> headers,
            IEnumerable<Header> contentHeaders, HttpCompletionOption httpCompletetionOption,
-           string postParameters, TimeSpan timeOut, ref CancellationToken cancellationToken)
+           string postParameters, TimeSpan timeOut, CancellationToken cancellationToken)
         {
             Task.Run(async () =>
             {
                 await HttpStreamInvoke(url, HttpMethod.Post, headers, contentHeaders,
-                    httpCompletetionOption, postParameters, timeOut, null);
+                    httpCompletetionOption, postParameters, timeOut, null, cancellationToken);
             }, cancellationToken);
         }
         public void HttpPostStreamInvoke(string url, IEnumerable<Header> headers,
           IEnumerable<Header> contentHeaders, HttpCompletionOption httpCompletetionOption,
-          string postParameters, TimeSpan timeOut, HttpResponseHandler httpResponseHandler, ref CancellationToken cancellationToken)
+          string postParameters, TimeSpan timeOut, HttpResponseHandler httpResponseHandler, 
+          CancellationToken cancellationToken)
         {
             Task.Run(async () =>
              {
                  await HttpStreamInvoke(url, HttpMethod.Post, headers, contentHeaders,
-                 httpCompletetionOption, postParameters, timeOut, httpResponseHandler);
+                 httpCompletetionOption, postParameters, timeOut, httpResponseHandler,
+                 cancellationToken);
              }, cancellationToken);
         }
         public void HttpGetStreamInvoke(string url, IEnumerable<Header> headers,
-           HttpCompletionOption httpCompletetionOption, TimeSpan timeOut, ref CancellationToken cancellationToken)
+           HttpCompletionOption httpCompletetionOption, TimeSpan timeOut, 
+           CancellationToken cancellationToken)
         {
             Task.Run(async () =>
             {
                 await HttpStreamInvoke(url, HttpMethod.Get, headers, null,
-                httpCompletetionOption, null, timeOut, null);
+                httpCompletetionOption, null, timeOut, null, cancellationToken);
             }, cancellationToken);
         }
         public void HttpGetStreamInvoke(string url, IEnumerable<Header> headers,
             HttpCompletionOption httpCompletetionOption, TimeSpan timeOut,
-          HttpResponseHandler httpResponseHandler, ref CancellationToken cancellationToken)
+          HttpResponseHandler httpResponseHandler, CancellationToken cancellationToken)
         {
             Task.Run(async () =>
             {
                 await HttpStreamInvoke(url, HttpMethod.Get, headers, null,
-                httpCompletetionOption, null, timeOut, httpResponseHandler);
+                httpCompletetionOption, null, timeOut, httpResponseHandler, cancellationToken);
             }, cancellationToken);
         }
         private async Task HttpStreamInvoke(string url, HttpMethod httpMethod, IEnumerable<Header> headers,
             IEnumerable<Header> contentHeaders, HttpCompletionOption httpCompletetionOption,
-            string postParameters, TimeSpan timeOut, HttpResponseHandler httpResponseHandler)
+            string postParameters, TimeSpan timeOut, HttpResponseHandler httpResponseHandler, 
+            CancellationToken cancellationToken)
         {
-            postParameters = postParameters == null ? String.Empty : postParameters;
+            postParameters = postParameters ?? String.Empty;
             byte[] bufferPostParameters = Encoding.UTF8.GetBytes(postParameters);            
 
             using (StreamContent streamContent = new StreamContent(new MemoryStream(bufferPostParameters)))
@@ -176,6 +180,11 @@ namespace TwitterApi.Controllers
                         request.Content = streamContent;
                     }
 
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
                     await httpClient.SendAsync(request, httpCompletetionOption)
                         .ContinueWith(async responseTask =>
                         {
@@ -193,7 +202,7 @@ namespace TwitterApi.Controllers
                                             response.Content.Headers.Select(c => { return Header.CreateHeader(c.Key, c.Value); }));
                                         try
                                         {
-                                            while (!streamReader.EndOfStream)
+                                            while (!streamReader.EndOfStream && !cancellationToken.IsCancellationRequested)
                                             {
                                                 if (httpResponseHandler != null)
                                                 {
@@ -210,10 +219,12 @@ namespace TwitterApi.Controllers
                                             Exception e = ex;
                                         }
                                         finally
-                                        {
-                                            httpResponseHandler?.Invoke(this,
-                                                new HttpInvokerResponseArgs(new HttpInvokerResponse(response.StatusCode,
-                                                response.ReasonPhrase, headers, contentHeaders, String.Empty, true)));
+                                        {if (!cancellationToken.IsCancellationRequested)
+                                            {
+                                                httpResponseHandler?.Invoke(this,
+                                                    new HttpInvokerResponseArgs(new HttpInvokerResponse(response.StatusCode,
+                                                    response.ReasonPhrase, headers, contentHeaders, String.Empty, true)));
+                                            }
                                         }
                                     }
                                 });
