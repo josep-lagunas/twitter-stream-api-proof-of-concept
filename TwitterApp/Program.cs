@@ -33,48 +33,47 @@ namespace TwitterApp
                                           decimal.Parse(boxCoordinates[i + 2].Replace('.', ',')), 
                                           decimal.Parse(boxCoordinates[i + 3].Replace('.', ','))));
             }
-                
-            TwitterApiClient.getInstance()
-                .setCredentials("jkuG56zlta1exJJ3kGi2mlXRM"
+
+            TwitterApiClient twitterApiClient = new TwitterApiClient();
+            twitterApiClient.SetCredentials("jkuG56zlta1exJJ3kGi2mlXRM"
                     , "kPHXBkmLqOV9thDnFE4QJpvzND7hkJBp8AYtwcIts9l64LEmt8"
                     , "430727651-vHPtvToq1UK3RHm3tMrQmQA4BW3PdJlxAopL53We"
                     , "rEArJ1vb8Uuh24WTeh9tW8DKFPNWfEvEFte3jdfUkXaPC");
 
-            TwitterApiClient.getInstance().streamTweetByHashTagEvent += Program_StreamTweetEvent;
-            TwitterApiClient.getInstance().GetTweetsByHashtags(keywords, languages, mapBoxCoordinates);
-
-
-            //Task<string> result = TwitterApiClient.getInstance().Tweet(input);
-            //Task<string> result2 = TwitterApiClient.getInstance().DirectMessage("testaccountjlc", input);
-            //Task<string> result3 = TwitterApiClient.getInstance().ReTweetLastMessage("josep_lagunas");
-            //Task<string> result4 = TwitterApiClient.getInstance().ReTweetMessage(903541646029185024);
-            //Task<string> result5 = TwitterApiClient.getInstance().ReTweetMessage(903619996970094592, "Aixó és NOU  retweet amb missatge:");
-            //Task.WaitAll(result, result2, result3, result4, result5);
-
-            //Console.WriteLine(result.Result);
-            //Console.WriteLine();
-            //Console.WriteLine();
-            //Console.WriteLine(result2.Result);
-            //Console.WriteLine();
-            //Console.WriteLine();
-            //Console.WriteLine(result3.Result);
-            //Console.WriteLine();
-            //Console.WriteLine();
-            //Console.WriteLine(result4.Result);
-            //Console.WriteLine();
-            //Console.WriteLine();
-            //Console.WriteLine(result5.Result);
-            Console.ReadKey();
-
-        }
-
-        private static void Program_StreamTweetEvent(object sender, TweetStreamArgs e)
-        {
-            if (e.Tweet != null)
+            twitterApiClient.StartStreamingTweets("dummykey", keywords, languages, mapBoxCoordinates, (object sender, TweetStreamArgs e) =>
             {
-                Console.WriteLine(e.Tweet.text);
-                Console.WriteLine();
-            }
+                if (e.Tweet != null)
+                {
+                    Console.WriteLine(e.Tweet.text);
+                    Console.WriteLine();
+                }
+            });
+
+
+                //Task<string> result = TwitterApiClient.getInstance().Tweet(input);
+                //Task<string> result2 = TwitterApiClient.getInstance().DirectMessage("testaccountjlc", input);
+                //Task<string> result3 = TwitterApiClient.getInstance().ReTweetLastMessage("josep_lagunas");
+                //Task<string> result4 = TwitterApiClient.getInstance().ReTweetMessage(903541646029185024);
+                //Task<string> result5 = TwitterApiClient.getInstance().ReTweetMessage(903619996970094592, "Aixó és NOU  retweet amb missatge:");
+                //Task.WaitAll(result, result2, result3, result4, result5);
+
+                //Console.WriteLine(result.Result);
+                //Console.WriteLine();
+                //Console.WriteLine();
+                //Console.WriteLine(result2.Result);
+                //Console.WriteLine();
+                //Console.WriteLine();
+                //Console.WriteLine(result3.Result);
+                //Console.WriteLine();
+                //Console.WriteLine();
+                //Console.WriteLine(result4.Result);
+                //Console.WriteLine();
+                //Console.WriteLine();
+                //Console.WriteLine(result5.Result);
+                Console.ReadKey();
+
         }
+
+       
     }
 }

@@ -6,7 +6,6 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System;
 using System.Runtime.Serialization;
-using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Utils
@@ -21,8 +20,8 @@ namespace Utils
         private SerializationServices()
         {
         }
-
-        public static SerializationServices getInstance
+        
+        public static SerializationServices GetInstance
         {
             get
             {
@@ -45,7 +44,7 @@ namespace Utils
         /// </summary>
         /// <param name="o">Instància a serialitzar</param>
         /// <returns>String que conté la serialització en json de l'obtecte passat com a paràmetre</returns>
-        public string getJSONfromObject(object o)
+        public string GetJSONfromObject(object o)
         {
             try
             {
@@ -66,7 +65,7 @@ namespace Utils
         /// <param name="json">Objecte serialitzat en format json</param>
         /// <param name="T">Tipus de la instància a retornar</param>
         /// <returns>Retorna una instància del tipus igual al nom passat com a segon paràmetre amb les dades del objecte serialitzat passat com a primer paràmetre</returns>
-        public T getObjectFromJSON<T>(string json)
+        public T GetObjectFromJSON<T>(string json)
         {
             try
             {
@@ -89,7 +88,7 @@ namespace Utils
             }
         }
 
-        public bool tryParse<T>(string json, out T item)
+        public bool TryParse<T>(string json, out T item)
         {
             try
             {
@@ -105,21 +104,21 @@ namespace Utils
                 }
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 item = default(T);
                 return false;
             }
         }
 
-        public T getObjectFromXML<T>(string xmlString)
+        public T GetObjectFromXML<T>(string xmlString)
         {
             byte[] buffer = Encoding.UTF8.GetBytes(xmlString);
             XmlSerializer x = new XmlSerializer(typeof(T));
             return (T)x.Deserialize(PopEOF(buffer));
         }
 
-        public string getXMLFromObject(object o)
+        public string GetXMLFromObject(object o)
         {
             XmlSerializer x = new XmlSerializer(o.GetType());
             using (MemoryStream str = new MemoryStream())
@@ -131,7 +130,7 @@ namespace Utils
             }
         }
 
-        public byte[] getBytesFromObject(object o)
+        public byte[] GetBytesFromObject(object o)
         {
             IFormatter f = new BinaryFormatter();
             using (MemoryStream str = new MemoryStream())
@@ -141,7 +140,7 @@ namespace Utils
             }
         }
 
-        public T getObjectFromBytes<T>(byte[] buffer)
+        public T GetObjectFromBytes<T>(byte[] buffer)
         {
             IFormatter f = new BinaryFormatter();
             using (Stream str = new MemoryStream(buffer))

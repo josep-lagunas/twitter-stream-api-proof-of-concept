@@ -3,94 +3,123 @@
 <head>
     <meta charset="utf-8" />
     <title>realtime tweets</title>
+
+    <script src="../javascript/jquery/v.1.6.4/jquery-1.6.4.min.js"></script>
+   
+    <!--<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap2-toggle.min.css" rel="stylesheet">
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap2-toggle.min.js"></script>-->
     <script src="../javascript/security/functions_cryptography.js"></script>
     <script src="../javascript/security/enc-base64.js"></script>
-    <script src="../javascript/jquery/v.1.6.4/jquery-1.6.4.min.js"></script>
     <script src="../javascript/util/guid.js"></script>
     <script src="../javascript/realtime/eventSubscribersBus.js"></script>
     <script src="../javascript/realtime/serverFeedBackEvent.js"></script>
     <script src="../javascript/api/clientapi.js"></script>
     <script src="../javascript/api/middleware.js"></script>
+  
     <script type="text/javascript">
-
-        $(document).ready(function(){
-            $("#main-container").children().remove();            
-        });
-
+        
         var wsToken;
         var clientid;
         var connection;
-        /*
-        var connection = new WebSocket('ws://localhost:51500/api/connect-websocket');
 
-        connection.onopen = function(ev) {
-            console.log("connected");
-            var package = { id: "A0409", name: "Josep", surnames: "Lagunas Calpe", number: 669989076 };
+        $(document).ready(function (e) {
 
-            var strPackage = JSON.stringify(package);
-
-            var hashedParameters = CryptoJS.enc.Base64.stringify(CryptoJS.SHA1(strPackage));
-
-            var transferPackage = { HashedKey: hashedParameters, Data: package };
-            
-            connection.send(JSON.stringify(transferPackage));            
-        }
-
-        connection.onmessage = function (e) {
-            console.log(e.data);
-        }
-
-        */
-    
-        //Request registration token and clientId
-        clientApi.getInstance().requestWSToken(false, true,
-            function (status, data) {
-
-                wsToken = data.wstoken;
-                clientid = data.clientid;
-
-                console.log("client id: " + data.clientid + " wstoken: " + wsToken);
-
-                connection = clientApi.getInstance().openWebSocketConnection(clientid, wsToken);
-                connection.onopen = function (clientId, wsToken) {
-                    return function (e) {
-                        onWSOpen(clientId, wsToken);
-                    }
-                }(clientid, wsToken);
-                
-                connection.onmessage = onWSMessage;
-                connection.onclose = onWSClose;
-
-                clientApi.getInstance().startTwitterStream(true, true, clientid,
-                    function (status, data) {
-                        console.log("subscribed to Twitter Stream");
-                    }, function (error) {
-                        console.log(error);
-                    });
-
-            },
-            function (error) {
-                console.log(error);
+            $("#switch-streaming").bind("click", function (evt) {
+                if ($(this).attr("checked") == "checked") {
+                    startStreaming();
+                } else {
+                    stopStreaming();
+                }
             });
-        
+
+        });
+
+        function stopStreaming() {
+            clientApi.getInstance().stopTwitterStream(true, true, clientid, function (status, data) {
+                console.log("streaming stop.");
+            }, function (error) {
+                console.log("error stoping streaming.");
+                });
+        }
+
+        function startStreaming() {
+            //Request registration token and clientId
+            clientApi.getInstance().requestWSToken(false, true,
+                function (status, data) {
+
+                    wsToken = data.wstoken;
+                    clientid = data.clientid;
+
+                    console.log("client id: " + data.clientid + " wstoken: " + wsToken);
+
+                    connection = clientApi.getInstance().openWebSocketConnection(clientid, wsToken);
+                    connection.onopen = function (clientId, wsToken) {
+                        return function (e) {
+                            onWSOpen(clientId, wsToken);
+                        }
+                    }(clientid, wsToken);
+
+                    connection.onmessage = onWSMessage;
+                    connection.onclose = onWSClose;
+
+                    clientApi.getInstance().subscribeTwitterStream(true, true, clientid,
+                        function (status, data) {
+                            console.log("subscribed to Twitter Stream");
+                            clientApi.getInstance().startTwitterStream(true, true,
+                                [], [],
+                                [{ longitude1: -180, latitude1: -90, longitude2: 180, latitude2: 90 }],
+                                clientid,
+                                function (status, data) {
+                                    console.log("start streaming.");
+                                }, function (error) { });
+                        }, function (error) {
+                            console.log(error);
+                        });
+
+                },
+                function (error) {
+                    console.log(error);
+                });
+        }
+
         function onWSMessage(e) {
             try {
                 console.log(e.data);
                 var tweet = JSON.parse(e.data).Data;
+                updateTweetInfo(tweet);
                 if (tweet != null && tweet.user != null && tweet.user.screen_name != null && tweet.geo != null) {
+
 
                     var latitude = tweet.geo.coordinates[0];
                     var longitude = tweet.geo.coordinates[1];
+                    var latLong = new google.maps.LatLng(latitude, longitude);
 
-                    geoTweets.push(new google.maps.LatLng(latitude, longitude));
+                    var prevPoint = null;
+
+                    var pointsCount = poly.getPath().getArray().length;
+
+                    if (pointsCount == 1) {
+                        prevPoint = poly.getPath().getArray()[0];
+                    } else if (pointsCount == 2) {
+                        prevPoint = poly.getPath().getArray()[1];
+                    }
+                    
+                    //poly.setMap(null);
+                    if (prevPoint != null) {
+                        poly.getPath().push(prevPoint);
+                    } else {
+                        poly.getPath().getArray().splice(0, 1);
+                    }
+                    poly.getPath().push(latLong);
+                    //poly.setMap(map);
+                    geoTweets.push(latLong);
+
 
                     /*var username = tweet.user.hasOwnProperty("screen_name")
                         && tweet.user.screen_name != null && tweet.user.screen_name != undefined ? tweet.user.screen_name : "Unknown user";
                     /*$("#main-container").append("<p style='color: yellow;'>" + username + "</p>");
                     var elem = $("<p style='color: green;'>" + tweet.text + "</p></br>").appendTo("#main-container");
                     window.scrollTo(0, $(elem).offset().top);*/
-
-                   
                 }
             } catch (e) { }
         }
@@ -136,16 +165,28 @@
             return transferPackage;
         }
                
-        var map, heatmap, geoTweets;
-        
+        var map, heatmap, geoTweets, poly;
+        var tweetsCounter = 0;
+
+        function updateTweetInfo(tweet) {
+            tweetsCounter++;
+            $("#tweets-counter").text("Tweets count: " + tweetsCounter);
+            if (tweet.coordinates != null) {
+                $("#tweet-location").text("located at latitude: " + tweet.geo.coordinates[0].toFixed(4) +
+                    " , longitue: " + tweet.geo.coordinates[1].toFixed(4));
+            }
+            $("#tweet-user").text("Author: " + tweet.user.screen_name);
+            $("#tweet-content").text(tweet.text);
+        }
+
         function initMap() {
 
-            var height = (window.innerHeight - 40) + "px";
+            var height = (window.innerHeight - 300) + "px";
 
             $("#main-container").css("height", height);
             geoTweets = new google.maps.MVCArray();
             map = new google.maps.Map(document.getElementById('main-container'), {
-                zoom: 3,
+                zoom: 2,
                 center: { lat: 41.380876, lng: 2.159059 }, 
                 mapTypeId: 'satellite'
             });
@@ -153,6 +194,13 @@
                 data: geoTweets,
                 map: map
             });
+
+            poly = new google.maps.Polyline({
+                strokeColor: '#6ce829',
+                strokeOpacity: 0.65,
+                strokeWeight: 6
+            });
+            poly.setMap(map);
         }
 
     </script>
@@ -164,6 +212,14 @@
 <body style="background-color:#000;">
     <div id="main-container" style="width:100%; height:auto; color: forestgreen; font-family: system-ui; width: 95%; margin-left: 2.5%; margin-top: 30px;">
 
+    </div>
+    <div id="tweet-container">
+        <label style="color:#fff;position:absolute;margin-top: 16px;margin-left: 88%;font-family: monospace;font-size: 11pt;">Stream Tweets</label>
+        <input id="switch-streaming" type="checkbox" data-toggle="toggle" style="color: forestgreen; font-family: system-ui; margin-top: 1%; margin-left: 95%;">
+        <p id="tweets-counter" style="height: 50px;width: auto;margin-left: 2.5%;font-family: monospace;font-size: 30pt;color: green;position: relative;margin-bottom: 0;margin-top: 10px;"></p>
+        <p id="tweet-user" style="color: #ffd800;margin-left: 2.5%;font-size: 20pt;margin-bottom: 0;margin-top: 0;font-family: monospace;"></p>
+        <p id="tweet-location" style="color: yellow;font-family: monospace;font-size: 13pt;margin-left: 3.5%;margin-top: 0;margin-bottom: 20px;"></p>
+        <p id="tweet-content" style="color:#fff;margin-left: 2.5%;font-size: 19pt;width: 95%;margin-top: 0;margin-bottom: 0;font-family: monospace;"></p>
     </div>
 </body>
 </html>

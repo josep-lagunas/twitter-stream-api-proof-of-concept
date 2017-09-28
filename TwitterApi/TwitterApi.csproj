@@ -50,6 +50,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HttpInvoker.cs" />
+    <Compile Include="ITwitterApiClient.cs" />
     <Compile Include="SerializationServices.cs" />
     <Compile Include="TweetModel.cs" />
     <Compile Include="TwitterApiClient.cs" />
