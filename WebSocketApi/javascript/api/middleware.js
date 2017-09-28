@@ -222,7 +222,7 @@
                     throw Error("http or https not found.")
                 }
                 _baseURL = baseURL;
-                _baseWebsocketUrl = baseURL.replace('https', 'ws').replace('http', 'ws');
+                _baseWebsocketUrl = baseURL.replace('https', 'wss').replace('http', 'ws');
 
             },
 
