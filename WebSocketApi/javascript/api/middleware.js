@@ -37,11 +37,11 @@
 
                     parameters.forEach(function(current){
 
-                        if (typeof(current.key) === "string" || (typeof(current.value) === "number" || typeof(current.value) === "string"))
+                        if (typeof current.key === "string" || typeof current.value === "number" || typeof current.value === "string")
                         {
 
-                            if (current.key !== undefined && current.key !== ""){
-                                queryParametersURLFormat = (queryParametersURLFormat === "")?  "?" + current.key + "=" + current.value : queryParametersURLFormat + "&" + current.key + "=" + current.value;
+                            if (current.key !== undefined && current.key !== "") {
+                                queryParametersURLFormat = queryParametersURLFormat === "" ? "?" + current.key + "=" + current.value : queryParametersURLFormat + "&" + current.key + "=" + current.value;
                             }
 
                         }else
@@ -64,7 +64,7 @@
 
                     parameters.forEach(function(current){
 
-                        if (typeof(current.key) === "string" || (typeof(current.value) === "number" || typeof(current.value) === "string"))
+                        if (typeof current.key === "string" || typeof current.value === "number" || typeof current.value === "string")
                         {
 
                             if (current.key !== undefined && current.key !== ""){
@@ -90,17 +90,13 @@
                  */
                 callRESTServerMethod: function () {
 
-
-                    //check for base URL
                     isBaseURLSet();
 
                     if (arguments.length === 0)
                         return;
 
                     var settings = arguments[0];
-
                     var checkVerb = settings["verb"];
-
                     var method = settings["method"];
 
                     if (method === undefined)
@@ -114,14 +110,10 @@
                     if (checkVerb === "GET") {
                         // Body parameters are not allowed
                         // Only query and/or path parameters allowed
-                        var bodyParameters = settings["bodyParameters"];
-                        if (bodyParameters !== undefined) {
+                        if (settings["bodyParameters"] !== undefined) {
                             throw new Error("Invalid use of bodyParameters in a GET call");
                         }
                     }
-                    //					}else if (checkVerb === "POST" || checkVerb === "PUT"){
-                    //						//No checs needed
-                    //					}
 
                     var async = settings["async"] || true;
                     var verb = checkVerb;
@@ -134,12 +126,12 @@
                     var pathParametersURL = extractPathParameters(pathParameters);
 
                     var bodyParameters = settings["bodyParameters"] || "";
-                    bodyParameters = (bodyParameters !== "" && bodyParameters !== undefined) ? bodyParameters : "";
+                    bodyParameters = bodyParameters !== "" && bodyParameters !== undefined ? bodyParameters : "";
                     //we have to check if we have received the body parameter already stringified or not
-                    if (typeof (bodyParameters) !== "string")
+                    if (typeof bodyParameters !== "string")
                         bodyParameters = JSON.stringify(bodyParameters);
 
-                    var headers = settings["headers"] || { };
+                    var headers = settings["headers"] || {};
 
                     var callback = settings["callback"];
                     var errorCallback = settings["errorCallback"];
@@ -160,7 +152,7 @@
                             //CheckAjaxSessionValidation(data.d);
 
                             var result = "";
-                            if (getAsJSON == true) {
+                            if (getAsJSON === true) {
                                 try {
                                     result = JSON.parse(data);
                                 } catch (e) { }
@@ -199,27 +191,27 @@
                         throw new Error("A method must specified");
 
                     method = "/" + method;
-                    
+
                     var onOpenCallback = settings["onOpenCallback"];
                     var onMessageCallback = settings["onMessageCallback"];
                     var onErrorCallback = settings["onErrorCallback"];
                     var onCloseCallback = settings["onCloseCallback"];
-                    
+
                     var url = _baseWebsocketUrl + method;
 
                     var connection = new WebSocket(url);
-                                        
+
                     return connection;
                 }
-            }
-        };
+            };
+        }
 
         return{
 
             setBaseURL: function(baseURL){
 
-                if (baseURL.indexOf('https') == -1 && baseURL.indexOf('http') == -1) {
-                    throw Error("http or https not found.")
+                if (baseURL.indexOf('https') === -1 && baseURL.indexOf('http') === -1) {
+                    throw Error("http or https not found.");
                 }
                 _baseURL = baseURL;
                 _baseWebsocketUrl = baseURL.replace('https', 'wss').replace('http', 'ws');

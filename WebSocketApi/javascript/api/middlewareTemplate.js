@@ -36,11 +36,11 @@
 
                     parameters.forEach(function(current){
 
-                        if (typeof(current.key) === "string" || (typeof(current.value) === "number" || typeof(current.value) === "string"))
+                        if (typeofcurrent.key === "string" || typeofcurrent.value === "number" || typeofcurrent.value === "string")
                         {
 
                             if (current.key !== undefined && current.key !== ""){
-                                queryParametersURLFormat = (queryParametersURLFormat === "")?  "?" + current.key + "=" + current.value : queryParametersURLFormat + "&" + current.key + "=" + current.value;
+                                queryParametersURLFormat = queryParametersURLFormat === ""?  "?" + current.key + "=" + current.value : queryParametersURLFormat + "&" + current.key + "=" + current.value;
                             }
 
                         }else
@@ -63,7 +63,7 @@
 
                     parameters.forEach(function(current){
 
-                        if (typeof(current.key) === "string" || (typeof(current.value) === "number" || typeof(current.value) === "string"))
+                        if (typeof current.key === "string" || typeof current.value === "number" || typeof current.value === "string")
                         {
 
                             if (current.key !== undefined && current.key !== ""){
@@ -113,8 +113,7 @@
                     if (checkVerb === "GET"){
                         // Body parameters are not allowed
                         // Only query and/or path parameters allowed
-                        var bodyParameters = settings["bodyParameters"];
-                        if (bodyParameters !== undefined){
+                        if (settings["bodyParameters"] !== undefined) {
                             throw new Error("Invalid use of bodyParameters in a GET call");
                         }
                     }
@@ -133,9 +132,9 @@
                     var pathParametersURL = extractPathParameters(pathParameters);
 
                     var bodyParameters = settings ["bodyParameters"] || "";
-                    bodyParameters = (bodyParameters !== "" && bodyParameters !== undefined) ? bodyParameters : "";
+                    bodyParameters = bodyParameters !== "" && bodyParameters !== undefined ? bodyParameters : "";
                     //we have to check if we have received the body parameter already stringified or not
-                    if (typeof(bodyParameters) !== "string")
+                    if (typeof bodyParameters !== "string")
                         bodyParameters = JSON.stringify(bodyParameters);
 
                     var callback = settings["callback"];
@@ -156,10 +155,10 @@
                             //CheckAjaxSessionValidation(data.d);
 
                             var result = "";
-                            if (getAsJSON == true) {
+                            if (getAsJSON === true) {
                                 try {
                                     result = JSON.parse(data);
-                                } catch (e) { }
+                                } catch (e) { throw e; }
                             } else {
                                 result = data;
                             }
@@ -178,7 +177,7 @@
                     });
                 }
             };
-        };
+        }
 
         return{
 
