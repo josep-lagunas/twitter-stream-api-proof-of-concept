@@ -236,13 +236,14 @@
 
             google.maps.event.addListener(rectangle, 'bounds_changed', function () {
                 if (!isDragging) {
+                    centerMapOnBounds(map, rectangle.getBounds());
                     stopStreaming();
                     startStreaming();
                     console.log("bounds_changed: isDragging -> " + isDragging  + " streaming stop and started.");
                 } else {
                     stopStreaming();
                     console.log("bounds_changed: isDragging -> " + isDragging + " No streaming.");
-                }
+                }                
             });
 
             google.maps.event.addListener(rectangle, 'dragstart', function () {
@@ -254,11 +255,29 @@
                 //stopStreaming();
                 //startStreaming();
                 isDragging = false;
-                console.log("drag_stop: isDragging ->" +  isDragging);
+                centerMapOnBounds(map, rectangle.getBounds());
+                console.log("drag_stop: isDragging ->" + isDragging);
+                
             });
 
             isStreaming = false;
             isDragging = false;
+        }
+
+        function getRectangleCenter(bounds) {
+            var sw = bounds.getSouthWest();
+            var ne = bounds.getNorthEast();
+
+            var centerLat = ne.lat() + ((sw.lat() - ne.lat()) / 2);
+            var centerLng = ne.lng() + ((sw.lng() - ne.lng()) / 2);
+            //no needed by now
+            return new google.maps.LatLng(centerLat, centerLng);
+        }
+
+        function centerMapOnBounds(map, bounds) {
+            
+            map.fitBounds(bounds);
+
         }
 
     </script>

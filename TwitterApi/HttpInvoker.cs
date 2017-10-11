@@ -97,31 +97,16 @@ namespace HTTP.Helpers
             this.result = result;
         }
     }
-    public class HttpInvoker
+    public class HttpInvoker : IHttpInvoker
     {
         private static object locker = new object();
-        private static HttpInvoker instance;
+       
         public delegate void HttpResponseHandler(HttpInvoker invoker, HttpInvokerResponseArgs e);
 
-        private HttpInvoker()
+        public HttpInvoker()
         {
         }
-
-        public static HttpInvoker GetInstance()
-        {
-            if (instance == null)
-            {
-                lock (locker)
-                {
-                    if (instance == null)
-                    {
-                        instance = new HttpInvoker();
-                    }
-                }
-            }
-            return instance;
-        }
-
+        
         public void HttpPostStreamInvoke(string url, IEnumerable<Header> headers,
            IEnumerable<Header> contentHeaders, HttpInvocationCompletionOption httpCompletetionOption,
            string postParameters, TimeSpan timeOut, CancellationToken cancellationToken)

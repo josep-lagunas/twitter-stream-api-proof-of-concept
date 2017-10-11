@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="HttpInvoker.cs" />
+    <Compile Include="IHttpInvoker.cs" />
     <Compile Include="ITwitterApiClient.cs" />
     <Compile Include="SerializationServices.cs" />
     <Compile Include="TweetModel.cs" />
