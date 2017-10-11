@@ -43,6 +43,7 @@
                 return;
             }
             isStreaming = false;
+            $("#switch-streaming").removeAttr("checked");
             clientApi.getInstance().stopTwitterStream(true, true, clientid, function (status, data) {
                 console.log("streaming stop.");
             }, function (error) {
@@ -55,6 +56,7 @@
                 return;
             }
             isStreaming = true;
+            $("#switch-streaming").attr("checked", "checked");
             //Request registration token and clientId
             clientApi.getInstance().requestWSToken(false, true,
                 function (status, data) {
@@ -227,7 +229,8 @@
             rectangle = new google.maps.Rectangle({
                 bounds: bounds,
                 editable: true,
-                draggable: true
+                draggable: true,
+                geodesic: true
             });
             rectangle.setMap(map);
 
