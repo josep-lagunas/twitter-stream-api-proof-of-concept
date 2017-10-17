@@ -21,9 +21,13 @@
         var wsToken;
         var clientid;
         var connection;
+        var rectangle;
+
+        var isStreaming;
+        var isDragging;
 
         $(document).ready(function (e) {
-
+                       
             $("#switch-streaming").bind("click", function (evt) {
                 if ($(this).attr("checked") == "checked") {
                     startStreaming();
@@ -31,10 +35,15 @@
                     stopStreaming();
                 }
             });
-
+            
         });
 
         function stopStreaming() {
+            if (!isStreaming) {
+                return;
+            }
+            isStreaming = false;
+            $("#switch-streaming").removeAttr("checked");
             clientApi.getInstance().stopTwitterStream(true, true, clientid, function (status, data) {
                 console.log("streaming stop.");
             }, function (error) {
@@ -43,6 +52,11 @@
         }
 
         function startStreaming() {
+            if (isStreaming) {
+                return;
+            }
+            isStreaming = true;
+            $("#switch-streaming").attr("checked", "checked");
             //Request registration token and clientId
             clientApi.getInstance().requestWSToken(false, true,
                 function (status, data) {
@@ -67,18 +81,23 @@
                             console.log("subscribed to Twitter Stream");
                             clientApi.getInstance().startTwitterStream(true, true,
                                 [], [],
-                                [{ longitude1: -180, latitude1: -90, longitude2: 180, latitude2: 90 }],
+                                [{
+                                    longitude1: rectangle.bounds.getSouthWest().lng(),
+                                    latitude1: rectangle.bounds.getSouthWest().lat(),
+                                    longitude2: rectangle.bounds.getNorthEast().lng(),
+                                    latitude2: rectangle.bounds.getNorthEast().lat()
+                                }],
                                 clientid,
                                 function (status, data) {
                                     console.log("start streaming.");
                                 }, function (error) { });
                         }, function (error) {
-                            console.log(error);
+                            console.log(error);                            
                         });
 
                 },
                 function (error) {
-                    console.log(error);
+                    console.log(error);                    
                 });
         }
 
@@ -160,8 +179,7 @@
         function getSignedTransferPackage(data) {
             var strPackage = JSON.stringify(data);
             var hashedParameters = CryptoJS.enc.Base64.stringify(CryptoJS.SHA1(strPackage + wsToken));
-            var transferPackage = { clientId: clientid, HashedKey: hashedParameters, Data: data };
-            //$("#main-container").append("<p style='color: yellow;'>" + JSON.stringify(data) + '</p>');
+            var transferPackage = { clientId: clientid, HashedKey: hashedParameters, Data: data };          
             return transferPackage;
         }
 
@@ -186,10 +204,11 @@
             $("#main-container").css("height", height);
             geoTweets = new google.maps.MVCArray();
             map = new google.maps.Map(document.getElementById('main-container'), {
-                zoom: 2,
+                zoom: 5,
                 center: { lat: 41.380876, lng: 2.159059 },
                 mapTypeId: 'satellite'
             });
+
             heatmap = new google.maps.visualization.HeatmapLayer({
                 data: geoTweets,
                 map: map
@@ -198,9 +217,67 @@
             poly = new google.maps.Polyline({
                 strokeColor: '#6ce829',
                 strokeOpacity: 0.65,
-                strokeWeight: 6
+                strokeWeight: 6,
+                geodesic: true
             });
+
             poly.setMap(map);
+
+            var sw = new google.maps.LatLng(36.028989, -10.786028);
+            var ne = new google.maps.LatLng(43.469735, 3.945488);
+            
+            var bounds = new google.maps.LatLngBounds(sw, ne);
+
+            // Define a rectangle and set its editable property to true.
+            rectangle = new google.maps.Rectangle({
+                bounds: bounds,
+                editable: true,
+                draggable: true,
+                geodesic: true
+            });
+
+            rectangle.setMap(map);
+
+            google.maps.event.addListener(rectangle, 'bounds_changed', function () {
+                if (!isDragging) {
+                    centerMapOnBounds(map, rectangle.getBounds());
+                    stopStreaming();
+                    startStreaming();
+                    console.log("bounds_changed: isDragging -> " + isDragging  + " streaming stop and started.");
+                } else {
+                    stopStreaming();
+                    console.log("bounds_changed: isDragging -> " + isDragging + " No streaming.");
+                }                
+            });
+
+            google.maps.event.addListener(rectangle, 'dragstart', function () {
+                isDragging = true;
+                console.log("drag_start: isDragging -> " + isDragging);
+            });
+            google.maps.event.addListener(rectangle, 'dragend', function () {
+                isDragging = false;
+                centerMapOnBounds(map, rectangle.getBounds());
+                console.log("drag_stop: isDragging ->" + isDragging);
+            });
+
+            isStreaming = false;
+            isDragging = false;
+        }
+
+        function getRectangleCenter(bounds) {
+            var sw = bounds.getSouthWest();
+            var ne = bounds.getNorthEast();
+
+            var centerLat = ne.lat() + ((sw.lat() - ne.lat()) / 2);
+            var centerLng = ne.lng() + ((sw.lng() - ne.lng()) / 2);
+            //no needed by now
+            return new google.maps.LatLng(centerLat, centerLng);
+        }
+
+        function centerMapOnBounds(map, bounds) {
+            
+            map.fitBounds(bounds);
+
         }
 
     </script>

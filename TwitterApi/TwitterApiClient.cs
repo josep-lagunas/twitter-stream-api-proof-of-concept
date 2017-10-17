@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -11,7 +10,7 @@ using System.Threading.Tasks;
 using TwitterClient.Models;
 using System.Globalization;
 using Utils;
-using TwitterApi.Controllers;
+using HTTP.Helpers;
 using System.Collections.Concurrent;
 
 namespace TwitterApi
@@ -58,7 +57,9 @@ namespace TwitterApi
         private HMACSHA1 sigHasher;
 
         private bool credentialsSet;
-        
+
+        private IHttpInvoker httpInvoker;
+
         public delegate void StreamTweetByHashtagHandler(object sender, TweetStreamArgs e);
 
         public event StreamTweetByHashtagHandler StreamTweetByHashTagEvent;
@@ -72,8 +73,9 @@ namespace TwitterApi
             ReTweet = 2,
         };
 
-        public TwitterApiClient()
+        public TwitterApiClient(IHttpInvoker httpInvoker)
         {
+            this.httpInvoker = httpInvoker;
             baseAPIRestUrl = "https://api.twitter.com/1.1/";
             baseUrlTweetLinks = "https://twitter.com/TwitterDev/status/";
             basePublicStreamAPI = "https://stream.twitter.com/1.1/";
@@ -295,8 +297,8 @@ namespace TwitterApi
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             CancellationToken cancellationToken = cancellationTokenSource.Token;
             streamingCancellationTokensSrc.AddOrUpdate(id, cancellationTokenSource, (tokenId, cancellationTokenSrc) => { return cancellationTokenSrc; });
-            HttpInvoker.GetInstance().HttpPostStreamInvoke(url, headers, contentHeaders,
-                HttpCompletionOption.ResponseHeadersRead, postParameters,
+            httpInvoker.HttpPostStreamInvoke(url, headers, contentHeaders,
+                HttpInvocationCompletionOption.ResponseHeadersRead, postParameters,
                 TimeSpan.FromMilliseconds(Timeout.Infinite),
                 (target, e) =>
                 {

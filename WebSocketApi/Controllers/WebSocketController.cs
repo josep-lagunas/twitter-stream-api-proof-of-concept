@@ -289,7 +289,7 @@ namespace WebSocketApi.Controllers
         {
             return ResponseMessage(Request.CreateResponse(HttpStatusCode.OK, new List<ServerEvents>()));
         }
-        
+
         [AllowAnonymous]
         [Route("api/connect-websocket")]
         [HttpGet]
@@ -299,7 +299,6 @@ namespace WebSocketApi.Controllers
             if (context.IsWebSocketRequest)
             {
                 context.AcceptWebSocketRequest(WebSocketRequestHandler);
-             
                 HttpResponseMessage response = GetRegisterResponse();
                 return ResponseMessage(response);
             }

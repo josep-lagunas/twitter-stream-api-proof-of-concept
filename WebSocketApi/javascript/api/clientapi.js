@@ -57,14 +57,14 @@
                         async: isAsync,
                         getAsJon: getAsJson,
                         method: "api/subscribe-server-events",
-                        headers: { 'client-id' : clientId },
+                        headers: { 'client-id': clientId },
                         pathParameters: [],
                         bodyParameters: [{ Id: 1, Name: "GET_TWEETS" }],
                         callback: successCallback,
                         errorCallback: errorCallback,
                         beforeSendCallback: beforeSendCallback,
                         completedCallback: completedCallback
-                    }
+                    };
 
                     return serverConnector.getInstance().callRESTServerMethod(settings);
                 },
@@ -85,7 +85,7 @@
                         errorCallback: errorCallback,
                         beforeSendCallback: beforeSendCallback,
                         completedCallback: completedCallback
-                    }
+                    };
 
                     return serverConnector.getInstance().callRESTServerMethod(settings);
                 },
@@ -104,12 +104,12 @@
                         errorCallback: errorCallback,
                         beforeSendCallback: beforeSendCallback,
                         completedCallback: completedCallback
-                    }
+                    };
 
                     return serverConnector.getInstance().callRESTServerMethod(settings);
                 }
             };
-        };
+        }
 
         return {
 

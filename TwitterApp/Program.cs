@@ -34,7 +34,7 @@ namespace TwitterApp
                                           decimal.Parse(boxCoordinates[i + 3].Replace('.', ','))));
             }
 
-            TwitterApiClient twitterApiClient = new TwitterApiClient();
+            TwitterApiClient twitterApiClient = new TwitterApiClient(new HTTP.Helpers.HttpInvoker());
             twitterApiClient.SetCredentials("jkuG56zlta1exJJ3kGi2mlXRM"
                     , "kPHXBkmLqOV9thDnFE4QJpvzND7hkJBp8AYtwcIts9l64LEmt8"
                     , "430727651-vHPtvToq1UK3RHm3tMrQmQA4BW3PdJlxAopL53We"

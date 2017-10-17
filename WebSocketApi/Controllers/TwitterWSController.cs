@@ -15,7 +15,7 @@ namespace WebSocketApi.Controllers
     {
 
         private ITwitterApiClient twitterApiClient;
-
+        
         public TwitterWSController(ITwitterApiClient twitterApiClient)
         {
             this.twitterApiClient = twitterApiClient;
