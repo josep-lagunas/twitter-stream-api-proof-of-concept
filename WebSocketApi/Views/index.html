@@ -208,6 +208,7 @@
                 center: { lat: 41.380876, lng: 2.159059 },
                 mapTypeId: 'satellite'
             });
+
             heatmap = new google.maps.visualization.HeatmapLayer({
                 data: geoTweets,
                 map: map
@@ -216,8 +217,10 @@
             poly = new google.maps.Polyline({
                 strokeColor: '#6ce829',
                 strokeOpacity: 0.65,
-                strokeWeight: 6
+                strokeWeight: 6,
+                geodesic: true
             });
+
             poly.setMap(map);
 
             var sw = new google.maps.LatLng(36.028989, -10.786028);
@@ -232,6 +235,7 @@
                 draggable: true,
                 geodesic: true
             });
+
             rectangle.setMap(map);
 
             google.maps.event.addListener(rectangle, 'bounds_changed', function () {
@@ -247,17 +251,13 @@
             });
 
             google.maps.event.addListener(rectangle, 'dragstart', function () {
-                    //stopStreaming();  
                 isDragging = true;
                 console.log("drag_start: isDragging -> " + isDragging);
             });
             google.maps.event.addListener(rectangle, 'dragend', function () {
-                //stopStreaming();
-                //startStreaming();
                 isDragging = false;
                 centerMapOnBounds(map, rectangle.getBounds());
                 console.log("drag_stop: isDragging ->" + isDragging);
-                
             });
 
             isStreaming = false;

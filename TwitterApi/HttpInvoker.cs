@@ -49,14 +49,13 @@ namespace HTTP.Helpers
     public enum HttpInvocationCompletionOption
     {
         //
-        // Resumen:
-        //     Después de leer la respuesta completa, incluido el contenido, debe completar
-        //     la operación.
+        // Resumen: Después de leer la respuesta completa, incluido el
+        //     contenido, debe completar la operación.
         ResponseContentRead = 0,
         //
-        // Resumen:
-        //     Tan pronto como hay disponible una respuesta y se leen los encabezados, debe
-        //     completar la operación. El contenido no se lee aún.
+        // Resumen: Tan pronto como hay disponible una respuesta y se leen los
+        //     encabezados, debe completar la operación. El contenido no se lee
+        //     aún.
         ResponseHeadersRead = 1
     }
 
@@ -240,7 +239,8 @@ namespace HTTP.Helpers
            Dictionary<string, string> postParameters, TimeSpan timeOut,
            HttpResponseHandler httpResponseHandler)
         {
-            // Build the form data (exclude OAuth stuff that's already in the header).
+            // Build the form data (exclude OAuth stuff that's already in the
+            // header).
             var formData = new FormUrlEncodedContent(postParameters);
             contentHeader.ToList().ForEach(h => { formData.Headers.Add(h.Key, h.Value); });
             using (var httpClient = new HttpClient())

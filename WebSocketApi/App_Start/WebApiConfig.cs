@@ -1,10 +1,6 @@
 ﻿using HTTP.Helpers;
 using Microsoft.Practices.Unity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Web.Http;
-using System.Web.Http.Filters;
 using TwitterApi;
 using WebSocketApi.Controllers;
 
@@ -16,7 +12,7 @@ namespace WebSocketApi
         {
             // Configuración y servicios de API web
             var container = new UnityContainer();
-            
+
             container.RegisterType<IHttpInvoker, HttpInvoker>(new ContainerControlledLifetimeManager());
 
             container.RegisterType<ITwitterApiClient, TwitterApiClient>(new ContainerControlledLifetimeManager(),
@@ -30,24 +26,22 @@ namespace WebSocketApi
                             , "rEArJ1vb8Uuh24WTeh9tW8DKFPNWfEvEFte3jdfUkXaPC");
                     return instance;
                 }));
-            
+
             RequiresAuthorizationFilter authorizationFilter = new RequiresAuthorizationFilter(WebSocketController.ClientsConnections);
 
             container.RegisterInstance(typeof(RequiresAuthorizationFilter), authorizationFilter);
-          
+
             config.DependencyResolver = new UnityResolver(container);
-            
+
             config.Filters.Add(authorizationFilter);
 
             // Rutas de API web
             config.MapHttpAttributeRoutes();
-            
-            //config.Routes.MapHttpRoute(
-            //    name: "DefaultApi",
-            //    routeTemplate: "api/{controller}/{id}",
-            //    defaults: new { id = RouteParameter.Optional }
+
+            //config.Routes.MapHttpRoute( name: "DefaultApi", routeTemplate:
+            //    "api/{controller}/{id}", defaults: new { id =
+            //    RouteParameter.Optional }
             //);
         }
-      
     }
 }
