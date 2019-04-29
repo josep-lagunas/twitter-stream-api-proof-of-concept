@@ -29,7 +29,7 @@
         $(document).ready(function (e) {
                        
             $("#switch-streaming").bind("click", function (evt) {
-                if ($(this).attr("checked") == "checked") {
+                if ($(this).attr("checked") === "checked") {
                     startStreaming();
                 } else {
                     stopStreaming();

@@ -14,8 +14,8 @@ namespace Utils
     public class SerializationServices
     {
 
-        private static SerializationServices SS;
-        private static Object syncLook = new Object();
+        private static SerializationServices _ss;
+        private static Object syncLook = new object();
 
         private SerializationServices()
         {
@@ -25,17 +25,17 @@ namespace Utils
         {
             get
             {
-                if (SS == null)
+                if (_ss == null)
                 {
                     lock (syncLook)
                     {
-                        if (SS == null)
+                        if (_ss == null)
                         {
-                            SS = new SerializationServices();
+                            _ss = new SerializationServices();
                         }
                     }
                 }
-                return SS;
+                return _ss;
             }
         }
 

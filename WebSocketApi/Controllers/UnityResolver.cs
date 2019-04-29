@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Http.Dependencies;
+using Unity;
+using Unity.Exceptions;
 
 namespace WebSocketApi.Controllers
 {
@@ -13,7 +15,11 @@ namespace WebSocketApi.Controllers
         
         public UnityResolver(IUnityContainer container)
         {
-            this.container = container ?? throw new ArgumentNullException("container");
+            if (container == null)
+                throw new ArgumentNullException("container");
+            
+            this.container = container;
+                
         }
         public IDependencyScope BeginScope()
         {

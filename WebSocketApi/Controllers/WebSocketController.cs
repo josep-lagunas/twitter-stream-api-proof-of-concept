@@ -13,7 +13,6 @@ using System.Web.SessionState;
 using System.Collections.Concurrent;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Web.Http.Dependencies;
 
 namespace WebSocketApi.Controllers
 {
@@ -99,18 +98,19 @@ namespace WebSocketApi.Controllers
         public IHttpActionResult SubscribeServerEvents([FromBody] List<ServerEventsDTO> serverEventsDTO)
         {
 
-            string clientId = GetClientToken();
-            ConnectionCredentials cc = GetConnectionCredential(clientId);
+            var clientId = GetClientToken();
+            var cc = GetConnectionCredential(clientId);
             if (cc == null)
             {
                 return ResponseMessage(Request.CreateResponse(HttpStatusCode.Unauthorized, "Unknows clientId."));
             }
 
-            if (!ParseServerEventsFromServerEventsDTO(serverEventsDTO, out List<ServerEvents> serverEvents))
+            List<ServerEvents> serverEvents;
+            if (!ParseServerEventsFromServerEventsDTO(serverEventsDTO, out serverEvents))
             {
                 return ResponseMessage(Request.CreateResponse(
                        HttpStatusCode.Conflict,
-                       String.Format("Unknown server event.")));
+                       string.Format("Unknown server event.")));
             }
             
             SubscribeClientToEvents(clientId, serverEvents);
@@ -126,7 +126,9 @@ namespace WebSocketApi.Controllers
             {
                 return ResponseMessage(Request.CreateResponse(HttpStatusCode.Unauthorized, "Unknows clientId."));
             }
-            if (!ParseServerEventsFromServerEventsDTO(serverEventsDTO, out List<ServerEvents> serverEvents))
+
+            List<ServerEvents> serverEvents;
+            if (!ParseServerEventsFromServerEventsDTO(serverEventsDTO, out serverEvents))
             {
                 return ResponseMessage(Request.CreateResponse(
                        HttpStatusCode.Conflict,
@@ -139,21 +141,21 @@ namespace WebSocketApi.Controllers
 
         protected void NotifyServerEventAsync(string clientId, ServerEvents serverEvent, object data)
         {
-            serverEventsSubscriptors.TryGetValue(serverEvent, out Dictionary<string, ConnectionCredentials> subscriptors);
-            WebsocketDataPackage package = GenerateSignedPackage("API", data);
-            if (subscriptors != null)
+            Dictionary<string, ConnectionCredentials> subscriptors;
+            serverEventsSubscriptors.TryGetValue(serverEvent, out subscriptors);
+            var package = GenerateSignedPackage("API", data);
+            if (subscriptors == null) return;
+            if (subscriptors[clientId].ConnectionSet)
             {
-                    if (subscriptors[clientId].ConnectionSet)
-                    {
-                        NotifyToClient(subscriptors[clientId], package);
-                    }                
-            }           
+                NotifyToClient(subscriptors[clientId], package);
+            }
         }
 
         protected void BroadcastServerEventAsync(ServerEvents serverEvent, object data)
         {
-            serverEventsSubscriptors.TryGetValue(serverEvent, out Dictionary<string, ConnectionCredentials> subscriptors);
-            WebsocketDataPackage package = GenerateSignedPackage("API", data);
+            Dictionary<string, ConnectionCredentials> subscriptors;
+            serverEventsSubscriptors.TryGetValue(serverEvent, out subscriptors);
+            var package = GenerateSignedPackage("API", data);
             if (subscriptors != null)
             {
                 subscriptors.Values.ToList().ForEach(cc =>
@@ -169,7 +171,8 @@ namespace WebSocketApi.Controllers
 
         private static bool NotifyToClient(ConnectionCredentials cc, WebsocketDataPackage package)
         {
-            if (clientsConnections.TryGetValue(cc, out Connection connection)){
+            Connection connection;
+            if (clientsConnections.TryGetValue(cc, out connection)){
                 string jsonData = JsonConvert.SerializeObject(package);
                 Byte[] bytesToSend = System.Text.Encoding.UTF8.GetBytes(jsonData);
                 try
@@ -263,7 +266,8 @@ namespace WebSocketApi.Controllers
                     subscriptors.Remove(clientId);
                     if (subscriptors.Count == 0)
                     {
-                        serverEventsSubscriptors.TryRemove(serverEvent, out Dictionary<string, ConnectionCredentials> value);
+                        Dictionary<string, ConnectionCredentials> value;
+                        serverEventsSubscriptors.TryRemove(serverEvent, out value);
                     }
                 }
             });
