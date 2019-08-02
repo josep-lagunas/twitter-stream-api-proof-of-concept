@@ -1,7 +1,7 @@
 /**
  * Created by Josep on 22/1/15.
  */
-(function() {
+(function () {
     var guid = (function () {
 
         var instance;
@@ -20,7 +20,7 @@
             };
         }
 
-        if (instance === undefined){
+        if (instance === undefined) {
             instance = init();
         }
 
@@ -30,7 +30,7 @@
 
     window['guid'] = {
 
-        createGUID : guid
+        createGUID: guid
     };
 
 })();

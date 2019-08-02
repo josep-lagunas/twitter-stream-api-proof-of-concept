@@ -13,9 +13,8 @@ namespace WebSocketApi.Controllers
 {
     public class TwitterWSController : WebSocketController
     {
-
         private ITwitterApiClient twitterApiClient;
-        
+
         public TwitterWSController(ITwitterApiClient twitterApiClient)
         {
             this.twitterApiClient = twitterApiClient;
@@ -28,7 +27,7 @@ namespace WebSocketApi.Controllers
         {
             return ResponseMessage(Request.CreateResponse(HttpStatusCode.Accepted,
                 Enum.GetValues(typeof(ServerEvents)).Cast<ServerEvents>()
-                .Select(e => { return new ServerEventsDTO((int)e, e.ToString()); })));
+                    .Select(e => { return new ServerEventsDTO((int) e, e.ToString()); })));
         }
 
         [Route("api/start-streaming-tweets")]
@@ -37,9 +36,9 @@ namespace WebSocketApi.Controllers
         {
             string clientId = GetClientToken();
 
-            if (!twitterApiClient.
-                StartStreamingTweets(clientId, searchSettings.KeyWords,
-                searchSettings.Languages, searchSettings.MapBoxCoordinates, (object sender, TweetStreamArgs e) =>
+            if (!twitterApiClient.StartStreamingTweets(clientId, searchSettings.KeyWords,
+                searchSettings.Languages, searchSettings.MapBoxCoordinates,
+                (object sender, TweetStreamArgs e) =>
                 {
                     NotifyServerEventAsync(clientId, ServerEvents.GET_TWEETS, e.Tweet);
                 }))
@@ -58,12 +57,17 @@ namespace WebSocketApi.Controllers
         public IHttpActionResult StopSTreamingTweets()
         {
             string clientId = GetClientToken();
-          
+
             if (!twitterApiClient.StopStreamingTweetsByHashTags(clientId))
             {
                 return ResponseMessage(new HttpResponseMessage(HttpStatusCode.Forbidden)
-                { ReasonPhrase = String.Format("no client identified by {0} or service already stopped.", clientId) });
+                {
+                    ReasonPhrase =
+                        String.Format("no client identified by {0} or service already stopped.",
+                            clientId)
+                });
             }
+
             return ResponseMessage(new HttpResponseMessage(HttpStatusCode.OK));
         }
     }

@@ -5,9 +5,9 @@
         if (!this._instance) {
 
             this._instance = {
-                
+
                 isAvailable: (sessionStorage != undefined),
-               
+
                 proxy: {
 
                     exists: function (operationName, parameters) {
@@ -39,7 +39,7 @@
                     get: function (operationName, parameters, callback) {
 
                         if (!this.exists(operationName, parameters))
-                            //throw new Error("No chart found with the associated key " + Id);
+                        //throw new Error("No chart found with the associated key " + Id);
                             return undefined;
 
                         var key = (operationName + "_" + parameters.join('_')).toLowerCase();
@@ -49,23 +49,23 @@
 
 
                         compressor.getInstance().decompress(decompressedData,
-                               function (callback) {
-                                   return function (data) {
+                            function (callback) {
+                                return function (data) {
 
-                                       decompressedData = JSON.parse(data);
+                                    decompressedData = JSON.parse(data);
 
-                                       if (callback != undefined) {
-                                           callback(decompressedData);
-                                       }
+                                    if (callback != undefined) {
+                                        callback(decompressedData);
+                                    }
 
-                                   }
-                               }(callback));
+                                }
+                            }(callback));
 
                     },
                     getSynch: function (operationName, parameters) {
 
                         if (!this.exists(operationName, parameters))
-                            //throw new Error("No chart found with the associated key " + Id);
+                        //throw new Error("No chart found with the associated key " + Id);
                             return undefined;
 
                         var key = (operationName + "_" + parameters.join('_')).toLowerCase();

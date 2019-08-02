@@ -17,6 +17,5 @@ namespace WebSocketApi.Controllers
             this.HashedKey = hashedKey;
             this.Data = data;
         }
-        
     }
 }

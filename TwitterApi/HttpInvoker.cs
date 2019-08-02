@@ -18,15 +18,18 @@ namespace HTTP.Helpers
         public class SingleValueHeadear : Header
         {
             public override string Value { get; set; }
+
             internal SingleValueHeadear(string key, string value)
             {
                 Key = key;
                 Value = value;
             }
         }
+
         public class ListValuesHeader : Header
         {
             public new IEnumerable<string> Value { get; set; }
+
             internal ListValuesHeader(string key, IEnumerable<string> value)
             {
                 Key = key;
@@ -43,7 +46,6 @@ namespace HTTP.Helpers
         {
             return new ListValuesHeader(key, value);
         }
-
     }
 
     public enum HttpInvocationCompletionOption
@@ -52,6 +54,7 @@ namespace HTTP.Helpers
         // Resumen: Después de leer la respuesta completa, incluido el
         //     contenido, debe completar la operación.
         ResponseContentRead = 0,
+
         //
         // Resumen: Tan pronto como hay disponible una respuesta y se leen los
         //     encabezados, debe completar la operación. El contenido no se lee
@@ -62,17 +65,46 @@ namespace HTTP.Helpers
     public class HttpInvokerResponse
     {
         private HttpStatusCode httpStatusCode;
-        public HttpStatusCode HttpStatusCode { get { return httpStatusCode; } }
+
+        public HttpStatusCode HttpStatusCode
+        {
+            get { return httpStatusCode; }
+        }
+
         private string httpStatusMessage;
-        public string HttpStatusMessage { get { return httpStatusMessage; } }
+
+        public string HttpStatusMessage
+        {
+            get { return httpStatusMessage; }
+        }
+
         private IEnumerable<Header> headers;
-        public IEnumerable<Header> Headers { get { return headers; } }
+
+        public IEnumerable<Header> Headers
+        {
+            get { return headers; }
+        }
+
         private IEnumerable<Header> contentHeaders;
-        public IEnumerable<Header> ContentHeaders { get { return contentHeaders; } }
+
+        public IEnumerable<Header> ContentHeaders
+        {
+            get { return contentHeaders; }
+        }
+
         private string httpContent;
-        public string HttpContent { get { return httpContent; } }
+
+        public string HttpContent
+        {
+            get { return httpContent; }
+        }
+
         public bool connectionIsClosed;
-        public bool ConnectinIsClosed { get { return connectionIsClosed; } }
+
+        public bool ConnectinIsClosed
+        {
+            get { return connectionIsClosed; }
+        }
 
         public HttpInvokerResponse(HttpStatusCode httpStatusCode, string httpStatusMessage,
             IEnumerable<Header> headers, IEnumerable<Header> contentHeaders, String httpContent,
@@ -90,25 +122,32 @@ namespace HTTP.Helpers
     public class HttpInvokerResponseArgs : EventArgs
     {
         HttpInvokerResponse result;
-        public HttpInvokerResponse Result { get { return result; } }
+
+        public HttpInvokerResponse Result
+        {
+            get { return result; }
+        }
+
         public HttpInvokerResponseArgs(HttpInvokerResponse result)
         {
             this.result = result;
         }
     }
+
     public class HttpInvoker : IHttpInvoker
     {
         private static object locker = new object();
-       
+
         public delegate void HttpResponseHandler(HttpInvoker invoker, HttpInvokerResponseArgs e);
 
         public HttpInvoker()
         {
         }
-        
+
         public void HttpPostStreamInvoke(string url, IEnumerable<Header> headers,
-           IEnumerable<Header> contentHeaders, HttpInvocationCompletionOption httpCompletetionOption,
-           string postParameters, TimeSpan timeOut, CancellationToken cancellationToken)
+            IEnumerable<Header> contentHeaders,
+            HttpInvocationCompletionOption httpCompletetionOption,
+            string postParameters, TimeSpan timeOut, CancellationToken cancellationToken)
         {
             Task.Run(async () =>
             {
@@ -116,57 +155,72 @@ namespace HTTP.Helpers
                     httpCompletetionOption, postParameters, timeOut, null, cancellationToken);
             }, cancellationToken);
         }
+
         public void HttpPostStreamInvoke(string url, IEnumerable<Header> headers,
-          IEnumerable<Header> contentHeaders, HttpInvocationCompletionOption httpCompletetionOption,
-          string postParameters, TimeSpan timeOut, HttpResponseHandler httpResponseHandler,
-          CancellationToken cancellationToken)
+            IEnumerable<Header> contentHeaders,
+            HttpInvocationCompletionOption httpCompletetionOption,
+            string postParameters, TimeSpan timeOut, HttpResponseHandler httpResponseHandler,
+            CancellationToken cancellationToken)
         {
             Task.Run(async () =>
             {
                 await HttpStreamInvokeAsync(url, HttpMethod.Post, headers, contentHeaders,
-                httpCompletetionOption, postParameters, timeOut, httpResponseHandler,
-                cancellationToken);
+                    httpCompletetionOption, postParameters, timeOut, httpResponseHandler,
+                    cancellationToken);
             }, cancellationToken);
         }
-        public void HttpGetStreamInvoke(string url, IEnumerable<Header> headers,
-           HttpInvocationCompletionOption httpInvocationCompletionOption, TimeSpan timeOut,
-           CancellationToken cancellationToken)
-        {
-            Task.Run(async () =>
-            {
-                await HttpStreamInvokeAsync(url, HttpMethod.Get, headers, null,
-                httpInvocationCompletionOption, null, timeOut, null, cancellationToken);
-            }, cancellationToken);
-        }
+
         public void HttpGetStreamInvoke(string url, IEnumerable<Header> headers,
             HttpInvocationCompletionOption httpInvocationCompletionOption, TimeSpan timeOut,
-          HttpResponseHandler httpResponseHandler, CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
             Task.Run(async () =>
             {
                 await HttpStreamInvokeAsync(url, HttpMethod.Get, headers, null,
-                httpInvocationCompletionOption, null, timeOut, httpResponseHandler, cancellationToken);
+                    httpInvocationCompletionOption, null, timeOut, null, cancellationToken);
             }, cancellationToken);
         }
-        private async Task HttpStreamInvokeAsync(string url, HttpMethod httpMethod, IEnumerable<Header> headers,
-            IEnumerable<Header> contentHeaders, HttpInvocationCompletionOption httpInvocationCompletetionOption,
+
+        public void HttpGetStreamInvoke(string url, IEnumerable<Header> headers,
+            HttpInvocationCompletionOption httpInvocationCompletionOption, TimeSpan timeOut,
+            HttpResponseHandler httpResponseHandler, CancellationToken cancellationToken)
+        {
+            Task.Run(async () =>
+            {
+                await HttpStreamInvokeAsync(url, HttpMethod.Get, headers, null,
+                    httpInvocationCompletionOption, null, timeOut, httpResponseHandler,
+                    cancellationToken);
+            }, cancellationToken);
+        }
+
+        private async Task HttpStreamInvokeAsync(string url, HttpMethod httpMethod,
+            IEnumerable<Header> headers,
+            IEnumerable<Header> contentHeaders,
+            HttpInvocationCompletionOption httpInvocationCompletetionOption,
             string postParameters, TimeSpan timeOut, HttpResponseHandler httpResponseHandler,
             CancellationToken cancellationToken)
         {
             postParameters = postParameters ?? String.Empty;
             byte[] bufferPostParameters = Encoding.UTF8.GetBytes(postParameters);
 
-            using (StreamContent streamContent = new StreamContent(new MemoryStream(bufferPostParameters)))
+            using (StreamContent streamContent =
+                new StreamContent(new MemoryStream(bufferPostParameters)))
             {
                 if (httpMethod == HttpMethod.Post)
                 {
-                    contentHeaders.ToList().ForEach(h => { streamContent.Headers.Add(h.Key, h.Value); });
+                    contentHeaders.ToList().ForEach(h =>
+                    {
+                        streamContent.Headers.Add(h.Key, h.Value);
+                    });
                 }
 
                 using (HttpClient httpClient = new HttpClient())
                 {
                     httpClient.Timeout = timeOut;
-                    headers.ToList().ForEach(h => { httpClient.DefaultRequestHeaders.Add(h.Key, h.Value); });
+                    headers.ToList().ForEach(h =>
+                    {
+                        httpClient.DefaultRequestHeaders.Add(h.Key, h.Value);
+                    });
                     httpClient.BaseAddress = new Uri(url);
 
                     var request = new HttpRequestMessage(httpMethod, url);
@@ -181,63 +235,85 @@ namespace HTTP.Helpers
                         return;
                     }
 
-                    await httpClient.SendAsync(request, (HttpCompletionOption)httpInvocationCompletetionOption)
+                    await httpClient.SendAsync(request,
+                            (HttpCompletionOption) httpInvocationCompletetionOption)
                         .ContinueWith(async responseTask =>
                         {
                             using (HttpResponseMessage response = responseTask.Result)
                             {
-                                await response.Content.ReadAsStreamAsync().ContinueWith(streamTask =>
-                                {
-                                    using (StreamReader streamReader = new StreamReader(streamTask.Result))
+                                await response.Content.ReadAsStreamAsync().ContinueWith(
+                                    streamTask =>
                                     {
-                                        List<Header> responseHeaders = new List<Header>();
-                                        responseHeaders.AddRange(
-                                            response.Headers.Select(c => { return Header.CreateHeader(c.Key, c.Value); }));
-                                        List<Header> responseContentHeaders = new List<Header>();
-                                        responseContentHeaders.AddRange(
-                                            response.Content.Headers.Select(c => { return Header.CreateHeader(c.Key, c.Value); }));
-                                        try
+                                        using (StreamReader streamReader =
+                                            new StreamReader(streamTask.Result))
                                         {
-                                            while (!streamReader.EndOfStream && !cancellationToken.IsCancellationRequested)
-                                            {
-                                                if (httpResponseHandler != null)
+                                            List<Header> responseHeaders = new List<Header>();
+                                            responseHeaders.AddRange(
+                                                response.Headers.Select(c =>
                                                 {
-                                                    string json = streamReader.ReadLine();
+                                                    return Header.CreateHeader(c.Key, c.Value);
+                                                }));
+                                            List<Header> responseContentHeaders =
+                                                new List<Header>();
+                                            responseContentHeaders.AddRange(
+                                                response.Content.Headers.Select(c =>
+                                                {
+                                                    return Header.CreateHeader(c.Key, c.Value);
+                                                }));
+                                            try
+                                            {
+                                                while (!streamReader.EndOfStream &&
+                                                       !cancellationToken.IsCancellationRequested)
+                                                {
+                                                    if (httpResponseHandler != null)
+                                                    {
+                                                        string json = streamReader.ReadLine();
 
-                                                    httpResponseHandler(this,
-                                                        new HttpInvokerResponseArgs(new HttpInvokerResponse(response.StatusCode,
-                                                        response.ReasonPhrase, headers, contentHeaders, json, false)));
+                                                        httpResponseHandler(this,
+                                                            new HttpInvokerResponseArgs(
+                                                                new HttpInvokerResponse(
+                                                                    response.StatusCode,
+                                                                    response.ReasonPhrase, headers,
+                                                                    contentHeaders, json, false)));
+                                                    }
+                                                }
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Exception e = ex;
+                                            }
+                                            finally
+                                            {
+                                                if (!cancellationToken.IsCancellationRequested)
+                                                {
+                                                    httpResponseHandler?.Invoke(this,
+                                                        new HttpInvokerResponseArgs(
+                                                            new HttpInvokerResponse(
+                                                                response.StatusCode,
+                                                                response.ReasonPhrase, headers,
+                                                                contentHeaders, String.Empty,
+                                                                true)));
                                                 }
                                             }
                                         }
-                                        catch (Exception ex)
-                                        {
-                                            Exception e = ex;
-                                        }
-                                        finally
-                                        {
-                                            if (!cancellationToken.IsCancellationRequested)
-                                            {
-                                                httpResponseHandler?.Invoke(this,
-                                                    new HttpInvokerResponseArgs(new HttpInvokerResponse(response.StatusCode,
-                                                    response.ReasonPhrase, headers, contentHeaders, String.Empty, true)));
-                                            }
-                                        }
-                                    }
-                                });
+                                    });
                             }
                         });
                 }
             }
         }
-        public async Task HttpPostInvoke(string url, IEnumerable<Header> headers, IEnumerable<Header> contentHeaders,
-          Dictionary<string, string> postParameters, TimeSpan timeOut)
+
+        public async Task HttpPostInvoke(string url, IEnumerable<Header> headers,
+            IEnumerable<Header> contentHeaders,
+            Dictionary<string, string> postParameters, TimeSpan timeOut)
         {
             await HttpPostInvoke(url, headers, contentHeaders, postParameters, timeOut, null);
         }
-        public async Task HttpPostInvoke(string url, IEnumerable<Header> headers, IEnumerable<Header> contentHeader,
-           Dictionary<string, string> postParameters, TimeSpan timeOut,
-           HttpResponseHandler httpResponseHandler)
+
+        public async Task HttpPostInvoke(string url, IEnumerable<Header> headers,
+            IEnumerable<Header> contentHeader,
+            Dictionary<string, string> postParameters, TimeSpan timeOut,
+            HttpResponseHandler httpResponseHandler)
         {
             // Build the form data (exclude OAuth stuff that's already in the
             // header).
@@ -245,7 +321,10 @@ namespace HTTP.Helpers
             contentHeader.ToList().ForEach(h => { formData.Headers.Add(h.Key, h.Value); });
             using (var httpClient = new HttpClient())
             {
-                headers.ToList().ForEach(h => { httpClient.DefaultRequestHeaders.Add(h.Key, h.Value); });
+                headers.ToList().ForEach(h =>
+                {
+                    httpClient.DefaultRequestHeaders.Add(h.Key, h.Value);
+                });
 
                 HttpResponseMessage httpResponse = await httpClient.PostAsync(url, formData);
                 string respBody = await httpResponse.Content.ReadAsStringAsync();
@@ -265,20 +344,26 @@ namespace HTTP.Helpers
 
                 httpResponseHandler?.Invoke(this,
                     new HttpInvokerResponseArgs(new HttpInvokerResponse(httpResponse.StatusCode,
-                                                httpResponse.ReasonPhrase, responseHeaders, responseContentHeaders, String.Empty, true)));
+                        httpResponse.ReasonPhrase, responseHeaders, responseContentHeaders,
+                        String.Empty, true)));
             }
         }
 
-        public async Task HttpGetInvokeAsync(string url, IEnumerable<Header> headers, TimeSpan timeOut)
+        public async Task HttpGetInvokeAsync(string url, IEnumerable<Header> headers,
+            TimeSpan timeOut)
         {
             await HttpGetStreamInvokeAsync(url, headers, timeOut, null);
         }
-        public async Task HttpGetStreamInvokeAsync(string url, IEnumerable<Header> headers, TimeSpan timeOut, HttpResponseHandler httpResponseHandler)
-        {
 
+        public async Task HttpGetStreamInvokeAsync(string url, IEnumerable<Header> headers,
+            TimeSpan timeOut, HttpResponseHandler httpResponseHandler)
+        {
             using (var httpClient = new HttpClient())
             {
-                headers.ToList().ForEach(h => { httpClient.DefaultRequestHeaders.Add(h.Key, h.Value); });
+                headers.ToList().ForEach(h =>
+                {
+                    httpClient.DefaultRequestHeaders.Add(h.Key, h.Value);
+                });
 
                 HttpResponseMessage httpResponse = await httpClient.GetAsync(url);
                 string respBody = await httpResponse.Content.ReadAsStringAsync();
@@ -298,10 +383,9 @@ namespace HTTP.Helpers
 
                 httpResponseHandler?.Invoke(this,
                     new HttpInvokerResponseArgs(new HttpInvokerResponse(httpResponse.StatusCode,
-                                                httpResponse.ReasonPhrase, responseHeaders, responseContentHeaders, String.Empty, true)));
+                        httpResponse.ReasonPhrase, responseHeaders, responseContentHeaders,
+                        String.Empty, true)));
             }
         }
-
     }
 }
-

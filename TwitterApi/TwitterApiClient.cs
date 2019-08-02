@@ -31,8 +31,9 @@ namespace TwitterApi
         public decimal Latitude1 { get; }
         public decimal Longitude2 { get; }
         public decimal Latitude2 { get; }
-    
-        public MapBoxCoordinates(decimal longitude1, decimal latitude1, decimal longitude2, decimal latitude2)
+
+        public MapBoxCoordinates(decimal longitude1, decimal latitude1, decimal longitude2,
+            decimal latitude2)
         {
             this.Longitude1 = longitude1;
             this.Latitude1 = latitude1;
@@ -40,18 +41,19 @@ namespace TwitterApi
             this.Latitude2 = latitude2;
         }
     }
+
     public class TwitterApiClient : ITwitterApiClient
     {
         private string baseAPIRestUrl;
         private string basePublicStreamAPI;
         private string baseUrlTweetLinks;
-    
+
         private string oauth_consumer_key;
-        
+
         private string oauth_signature_method;
         private string oauth_token;
         private string oauth_version;
-        
+
         private static object locker = new object();
         private DateTime epochUtc;
         private HMACSHA1 sigHasher;
@@ -64,7 +66,8 @@ namespace TwitterApi
 
         public event StreamTweetByHashtagHandler StreamTweetByHashTagEvent;
 
-        private ConcurrentDictionary<string, CancellationTokenSource>  streamingCancellationTokensSrc;
+        private ConcurrentDictionary<string, CancellationTokenSource>
+            streamingCancellationTokensSrc;
 
         private enum UseCase
         {
@@ -82,31 +85,35 @@ namespace TwitterApi
 
             epochUtc = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             credentialsSet = false;
-            streamingCancellationTokensSrc = new ConcurrentDictionary<string, CancellationTokenSource>();
-
+            streamingCancellationTokensSrc =
+                new ConcurrentDictionary<string, CancellationTokenSource>();
         }
-        
-        public void SetCredentials(string consumerKey, string consumerSecretKey, string accessToken, string accessTokenSecret)
-        {            
+
+        public void SetCredentials(string consumerKey, string consumerSecretKey, string accessToken,
+            string accessTokenSecret)
+        {
             oauth_consumer_key = consumerKey;
             oauth_token = accessToken;
-           
+
             oauth_signature_method = "HMAC-SHA1";
-            
+
             oauth_version = "1.0";
-            sigHasher = new HMACSHA1(new ASCIIEncoding().GetBytes(string.Format("{0}&{1}", Uri.EscapeDataString(consumerSecretKey), 
+            sigHasher = new HMACSHA1(new ASCIIEncoding().GetBytes(string.Format("{0}&{1}",
+                Uri.EscapeDataString(consumerSecretKey),
                 Uri.EscapeDataString(accessTokenSecret))));
-           
+
             credentialsSet = true;
         }
+
         #region "APIREST"
+
         public async Task<string> Tweet(string message)
         {
             CheckCredentials();
 
             var data = new Dictionary<string, string>
             {
-                { "status", message },{ "trim_user", "1" }
+                {"status", message}, {"trim_user", "1"}
             };
 
             return await SendToTwitter("statuses/update.json", data, UseCase.Tweet);
@@ -117,7 +124,7 @@ namespace TwitterApi
             CheckCredentials();
             var data = new Dictionary<string, string>
             {
-                { "status", String.Format("D {0} {1}", user, message) },{ "trim_user", "1" }
+                {"status", String.Format("D {0} {1}", user, message)}, {"trim_user", "1"}
             };
             return await SendToTwitter("statuses/update.json", data, UseCase.DirectMessage);
         }
@@ -127,7 +134,7 @@ namespace TwitterApi
             CheckCredentials();
             var data = new Dictionary<string, string>
             {
-                { "status", String.Format("RETWEET {0}", user) },{"trim_user", "1" }
+                {"status", String.Format("RETWEET {0}", user)}, {"trim_user", "1"}
             };
             return await SendToTwitter("statuses/update.json", data, UseCase.ReTweet);
         }
@@ -137,9 +144,10 @@ namespace TwitterApi
             CheckCredentials();
             var data = new Dictionary<string, string>
             {
-                {"trim_user", "1" }
+                {"trim_user", "1"}
             };
-            return await SendToTwitterDoWork(String.Format("statuses/retweet/{0}.json", tweetId.ToString()));
+            return await SendToTwitterDoWork(String.Format("statuses/retweet/{0}.json",
+                tweetId.ToString()));
         }
 
         public async Task<string> ReTweetMessage(long tweetId, string message)
@@ -147,41 +155,50 @@ namespace TwitterApi
             CheckCredentials();
             var data = new Dictionary<string, string>
             {
-                { "status", String.Format("{0} " +  baseUrlTweetLinks + "{1}", message, tweetId.ToString()) },{"trim_user", "1" }
+                {
+                    "status",
+                    String.Format("{0} " + baseUrlTweetLinks + "{1}", message, tweetId.ToString())
+                },
+                {"trim_user", "1"}
             };
             return await SendToTwitterDoWork("statuses/update.json", data);
         }
+
         #endregion
 
         #region "Public Stream API"
+
         public bool StopStreamingTweetsByHashTags(string id)
         {
             CheckCredentials();
-            
-            if (streamingCancellationTokensSrc != null && 
-                streamingCancellationTokensSrc.TryRemove(id, out CancellationTokenSource cancelationTokenSrc)){
 
+            if (streamingCancellationTokensSrc != null &&
+                streamingCancellationTokensSrc.TryRemove(id,
+                    out CancellationTokenSource cancelationTokenSrc))
+            {
                 cancelationTokenSrc.Cancel(false);
                 return true;
             }
-            else {
+            else
+            {
                 return false;
             }
         }
-        public bool StartStreamingTweets(string id, IEnumerable<string> hashtags, 
-            IEnumerable<string> languages, IEnumerable<MapBoxCoordinates> mapBoxCoordinates,
-            StreamTweetByHashtagHandler streamTweetHandler) {
 
+        public bool StartStreamingTweets(string id, IEnumerable<string> hashtags,
+            IEnumerable<string> languages, IEnumerable<MapBoxCoordinates> mapBoxCoordinates,
+            StreamTweetByHashtagHandler streamTweetHandler)
+        {
             CheckCredentials();
-            
+
             //already streaming
             if (streamingCancellationTokensSrc.ContainsKey(id))
             {
                 return true;
             }
 
-            if ((hashtags == null || hashtags.Count() == 0) 
-                && (languages == null || languages.Count() == 0) 
+            if ((hashtags == null || hashtags.Count() == 0)
+                && (languages == null || languages.Count() == 0)
                 && (mapBoxCoordinates == null || mapBoxCoordinates.Count() == 0))
             {
                 throw new ArgumentException("At least one keyword must exists.");
@@ -195,9 +212,9 @@ namespace TwitterApi
             string langs = String.Join(",", languages.Select(str => str.Trim()));
 
             string coordinates = String.Join(",", mapBoxCoordinates.Select(
-                coord => String.Format(new CultureInfo("en-US"), 
-                "{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}", 
-                coord.Longitude1, coord.Latitude1, coord.Longitude2, coord.Latitude2)));
+                coord => String.Format(new CultureInfo("en-US"),
+                    "{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}",
+                    coord.Longitude1, coord.Latitude1, coord.Longitude2, coord.Latitude2)));
 
             var data = new Dictionary<string, string>();
 
@@ -205,10 +222,12 @@ namespace TwitterApi
             {
                 data.Add("track", keywords);
             }
+
             if (langs != "")
             {
                 data.Add("language", langs);
             }
+
             if (coordinates != "")
             {
                 data.Add("locations", coordinates);
@@ -221,40 +240,48 @@ namespace TwitterApi
             return true;
         }
 
-        public void StartStreamingTweets(string id, IEnumerable<string> hashtags, IEnumerable<string> languages, StreamTweetByHashtagHandler streamTweetHandler)
+        public void StartStreamingTweets(string id, IEnumerable<string> hashtags,
+            IEnumerable<string> languages, StreamTweetByHashtagHandler streamTweetHandler)
         {
             StartStreamingTweets(id, hashtags, languages, null, streamTweetHandler);
         }
 
-        public void StartStreamingTweets(string id, IEnumerable<string> hashtags, StreamTweetByHashtagHandler streamTweetHandler)
+        public void StartStreamingTweets(string id, IEnumerable<string> hashtags,
+            StreamTweetByHashtagHandler streamTweetHandler)
         {
             StartStreamingTweets(id, hashtags, null, null, streamTweetHandler);
         }
+
         #endregion
+
         private void CheckCredentials()
         {
             if (!credentialsSet)
             {
-                throw new ArgumentNullException("No Twitter credentials found. Set first credentials using setCredentials().");
+                throw new ArgumentNullException(
+                    "No Twitter credentials found. Set first credentials using setCredentials().");
             }
         }
 
-        private async Task<string> SendToTwitter(string url, Dictionary<string, string> data, UseCase useCase)
+        private async Task<string> SendToTwitter(string url, Dictionary<string, string> data,
+            UseCase useCase)
         {
             switch (useCase)
             {
                 case UseCase.DirectMessage:
                 case UseCase.ReTweet:
-                    {
-                        data.Add("enable_dm_commands", "true");
-                        break;
-                    }
+                {
+                    data.Add("enable_dm_commands", "true");
+                    break;
+                }
+
                 case UseCase.Tweet:
-                    {
-                        data.Add("enable_dm_commands", "false");
-                        break;
-                    }                    
+                {
+                    data.Add("enable_dm_commands", "false");
+                    break;
+                }
             }
+
             return await SendToTwitterDoWork(url, data);
         }
 
@@ -263,17 +290,22 @@ namespace TwitterApi
             Dictionary<string, string> data = new Dictionary<string, string>();
             return await SendToTwitterDoWork(url, data);
         }
+
         private async Task<string> SendToTwitterDoWork(string url, Dictionary<string, string> data)
         {
             url = baseAPIRestUrl + url;
             return await ConsumeAPIDoWork(url, data);
         }
-        private void SendToStreamTwitterDoWork(string id, string url, Dictionary<string, string> data, StreamTweetByHashtagHandler streamTweetHandler)
+
+        private void SendToStreamTwitterDoWork(string id, string url,
+            Dictionary<string, string> data, StreamTweetByHashtagHandler streamTweetHandler)
         {
             url = basePublicStreamAPI + url;
             ConsumeStreamAPIDoWork(id, url, data, streamTweetHandler);
         }
-        private void ConsumeStreamAPIDoWork(string id, string url, Dictionary<string, string> data, StreamTweetByHashtagHandler streamTweetHandler)
+
+        private void ConsumeStreamAPIDoWork(string id, string url, Dictionary<string, string> data,
+            StreamTweetByHashtagHandler streamTweetHandler)
         {
             AddOauthParameters(url, data);
 
@@ -285,7 +317,7 @@ namespace TwitterApi
             };
             MemoryStream ms = new MemoryStream();
             string postParameters = String.Join("&",
-                    data.Where(kvp => !kvp.Key.StartsWith("oauth_"))
+                data.Where(kvp => !kvp.Key.StartsWith("oauth_"))
                     .Select(kvp => kvp.Key + "=" + kvp.Value));
 
             List<Header> contentHeaders = new List<Header>
@@ -296,7 +328,8 @@ namespace TwitterApi
 
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             CancellationToken cancellationToken = cancellationTokenSource.Token;
-            streamingCancellationTokensSrc.AddOrUpdate(id, cancellationTokenSource, (tokenId, cancellationTokenSrc) => { return cancellationTokenSrc; });
+            streamingCancellationTokensSrc.AddOrUpdate(id, cancellationTokenSource,
+                (tokenId, cancellationTokenSrc) => { return cancellationTokenSrc; });
             httpInvoker.HttpPostStreamInvoke(url, headers, contentHeaders,
                 HttpInvocationCompletionOption.ResponseHeadersRead, postParameters,
                 TimeSpan.FromMilliseconds(Timeout.Infinite),
@@ -310,7 +343,7 @@ namespace TwitterApi
                 }, cancellationToken);
         }
 
-            private async void ConsumeStreamAPIDoWorkOld(string url, Dictionary<string, string> data)
+        private async void ConsumeStreamAPIDoWorkOld(string url, Dictionary<string, string> data)
         {
             AddOauthParameters(url, data);
 
@@ -322,9 +355,10 @@ namespace TwitterApi
             byte[] postParameters =
                 Encoding.UTF8.GetBytes(String.Join("&",
                     data.Where(kvp => !kvp.Key.StartsWith("oauth_"))
-                    .Select(kvp => kvp.Key + "=" + kvp.Value)));
+                        .Select(kvp => kvp.Key + "=" + kvp.Value)));
 
-            using (StreamContent streamContent = new StreamContent(new MemoryStream(postParameters)))
+            using (StreamContent streamContent =
+                new StreamContent(new MemoryStream(postParameters)))
             {
                 streamContent.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
                 streamContent.Headers.Add("Content-Length", postParameters.Length.ToString());
@@ -341,29 +375,33 @@ namespace TwitterApi
                     };
                     await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead)
                         .ContinueWith(async responseTask =>
+                        {
+                            using (HttpResponseMessage response = responseTask.Result)
                             {
-                                using (HttpResponseMessage response = responseTask.Result)
-                                {
-                                    await response.Content.ReadAsStreamAsync().ContinueWith(streamTask =>
+                                await response.Content.ReadAsStreamAsync().ContinueWith(
+                                    streamTask =>
                                     {
-                                        using (StreamReader streamReader = new StreamReader(streamTask.Result))
+                                        using (StreamReader streamReader =
+                                            new StreamReader(streamTask.Result))
                                         {
                                             while (!streamReader.EndOfStream)
                                             {
                                                 string json = streamReader.ReadLine();
-                                                if (SerializationServices.GetInstance.TryParse<Tweet>(json, out Tweet tweet))
+                                                if (SerializationServices.GetInstance
+                                                    .TryParse<Tweet>(json, out Tweet tweet))
                                                 {
-                                                    StreamTweetByHashTagEvent?.Invoke(this, new TweetStreamArgs(tweet));
+                                                    StreamTweetByHashTagEvent?.Invoke(this,
+                                                        new TweetStreamArgs(tweet));
                                                 }
                                             }
                                         }
                                     });
-                                }
-                            });
+                            }
+                        });
                 }
             }
-        }             
-                
+        }
+
         private async Task<string> ConsumeAPIDoWork(string url, Dictionary<string, string> data)
         {
             AddOauthParameters(url, data);
@@ -372,7 +410,8 @@ namespace TwitterApi
             string oAuthHeader = GenerateOAuthHeader(data, url);
 
             // Build the form data (exclude OAuth stuff that's already in the header).
-            var formData = new FormUrlEncodedContent(data.Where(kvp => !kvp.Key.StartsWith("oauth_")));
+            var formData =
+                new FormUrlEncodedContent(data.Where(kvp => !kvp.Key.StartsWith("oauth_")));
 
             using (var http = new HttpClient())
             {
@@ -383,16 +422,16 @@ namespace TwitterApi
 
                 return respBody;
             }
-
         }
-               
+
         private string GenerateSignature(string url, Dictionary<string, string> data)
         {
             var sigString = string.Join(
                 "&",
                 data
                     .Union(data)
-                    .Select(kvp => string.Format("{0}={1}", Uri.EscapeDataString(kvp.Key), Uri.EscapeDataString(kvp.Value)))
+                    .Select(kvp => string.Format("{0}={1}", Uri.EscapeDataString(kvp.Key),
+                        Uri.EscapeDataString(kvp.Value)))
                     .OrderBy(s => s)
             );
 
@@ -403,15 +442,18 @@ namespace TwitterApi
                 Uri.EscapeDataString(sigString.ToString())
             );
 
-            return Convert.ToBase64String(sigHasher.ComputeHash(new ASCIIEncoding().GetBytes(fullSigData.ToString())));
+            return Convert.ToBase64String(
+                sigHasher.ComputeHash(new ASCIIEncoding().GetBytes(fullSigData.ToString())));
         }
 
         private void AddOauthParameters(string url, Dictionary<string, string> data)
         {
-            var timestamp = (int)((DateTime.UtcNow - epochUtc).TotalSeconds);
+            var timestamp = (int) ((DateTime.UtcNow - epochUtc).TotalSeconds);
 
             data.Add("oauth_consumer_key", oauth_consumer_key);
-            data.Add("oauth_nonce", Convert.ToBase64String(Encoding.ASCII.GetBytes(oauth_consumer_key + ":" + timestamp)));
+            data.Add("oauth_nonce",
+                Convert.ToBase64String(
+                    Encoding.ASCII.GetBytes(oauth_consumer_key + ":" + timestamp)));
             data.Add("oauth_signature_method", oauth_signature_method);
             data.Add("oauth_timestamp", timestamp.ToString());
             data.Add("oauth_token", oauth_token);
@@ -424,15 +466,16 @@ namespace TwitterApi
         private string GenerateOAuthHeader(Dictionary<string, string> data, string url)
         {
             string result = "OAuth " + string.Join(
-                ", ",
-                data
-                    .Where(kvp => kvp.Key.StartsWith("oauth_"))
-                    .Select(kvp => string.Format("{0}=\"{1}\"", Uri.EscapeDataString(kvp.Key), Uri.EscapeDataString(kvp.Value)))
-                    .OrderBy(s => s)
-            );
-            
+                                ", ",
+                                data
+                                    .Where(kvp => kvp.Key.StartsWith("oauth_"))
+                                    .Select(kvp => string.Format("{0}=\"{1}\"",
+                                        Uri.EscapeDataString(kvp.Key),
+                                        Uri.EscapeDataString(kvp.Value)))
+                                    .OrderBy(s => s)
+                            );
+
             return result;
         }
-
-    }    
+    }
 }

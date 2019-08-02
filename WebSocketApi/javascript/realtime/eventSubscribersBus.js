@@ -1,9 +1,10 @@
 /**
  * Created by Josep on 22/1/15.
  */
-(function() {
+(function () {
     var eventSubscribersBus = (function () {
         var instance;
+
         function init() {
             var subscribers = [];
             return {
@@ -33,11 +34,12 @@
                         return subscribers[i];
                     }
                 },
-                getSubscribers: function(){
+                getSubscribers: function () {
                     return subscribers;
                 }
             }
         }
+
         if (instance === undefined) {
             instance = init();
         }
