@@ -14,8 +14,8 @@
 
         }
 
-    }
-    
+    };
+
     this.removeItem = function (itemId) {
         try {
 
@@ -34,17 +34,18 @@
             throw ("Error removing Item having key: " + itemId);
         }
 
-    }
+    };
 
     this.abortAll = function () {
 
         try {
 
-           for (var i = 0; i < list.length; i++) {
+            for (var i = 0; i < list.length; i++) {
 
                 try {
                     list[i].abort();
-                } catch (e) { }
+                } catch (e) {
+                }
 
                 list[i] = null;
             }
@@ -52,10 +53,10 @@
             list = [];
 
         } catch (e) {
-            throw ("Error reseting AjaxCallQueue");
             list = [];
+            throw ("Error reseting AjaxCallQueue");
         }
 
     }
-    
+
 }

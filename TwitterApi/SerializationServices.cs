@@ -10,17 +10,15 @@ using Newtonsoft.Json;
 
 namespace Utils
 {
-
     public class SerializationServices
     {
-
         private static SerializationServices SS;
         private static Object syncLook = new Object();
 
         private SerializationServices()
         {
         }
-        
+
         public static SerializationServices GetInstance
         {
             get
@@ -35,6 +33,7 @@ namespace Utils
                         }
                     }
                 }
+
                 return SS;
             }
         }
@@ -50,7 +49,7 @@ namespace Utils
             {
                 using (MemoryStream m = new MemoryStream())
                 {
-                    return JsonConvert.SerializeObject(o);                    
+                    return JsonConvert.SerializeObject(o);
                 }
             }
             catch (Exception e)
@@ -72,12 +71,12 @@ namespace Utils
                 using (MemoryStream m = new MemoryStream(Encoding.UTF8.GetBytes(json)))
                 {
                     T obj = JsonConvert.DeserializeObject<T>(json,
-                                               new JsonSerializerSettings()
-                                               {
-                                                   NullValueHandling = NullValueHandling.Ignore,
-                                                   StringEscapeHandling = StringEscapeHandling.EscapeHtml,
-                                                   DateFormatHandling = DateFormatHandling.MicrosoftDateFormat
-                                               });
+                        new JsonSerializerSettings()
+                        {
+                            NullValueHandling = NullValueHandling.Ignore,
+                            StringEscapeHandling = StringEscapeHandling.EscapeHtml,
+                            DateFormatHandling = DateFormatHandling.MicrosoftDateFormat
+                        });
 
                     return obj;
                 }
@@ -95,13 +94,14 @@ namespace Utils
                 using (MemoryStream m = new MemoryStream(Encoding.UTF8.GetBytes(json)))
                 {
                     item = JsonConvert.DeserializeObject<T>(json,
-                                             new JsonSerializerSettings()
-                                             {
-                                                 NullValueHandling = NullValueHandling.Ignore,
-                                                 StringEscapeHandling = StringEscapeHandling.EscapeHtml,
-                                                 DateFormatHandling = DateFormatHandling.MicrosoftDateFormat
-                                             });                   
+                        new JsonSerializerSettings()
+                        {
+                            NullValueHandling = NullValueHandling.Ignore,
+                            StringEscapeHandling = StringEscapeHandling.EscapeHtml,
+                            DateFormatHandling = DateFormatHandling.MicrosoftDateFormat
+                        });
                 }
+
                 return true;
             }
             catch (Exception)
@@ -115,7 +115,7 @@ namespace Utils
         {
             byte[] buffer = Encoding.UTF8.GetBytes(xmlString);
             XmlSerializer x = new XmlSerializer(typeof(T));
-            return (T)x.Deserialize(PopEOF(buffer));
+            return (T) x.Deserialize(PopEOF(buffer));
         }
 
         public string GetXMLFromObject(object o)
@@ -145,7 +145,7 @@ namespace Utils
             IFormatter f = new BinaryFormatter();
             using (Stream str = new MemoryStream(buffer))
             {
-                T o = (T)f.Deserialize(str);
+                T o = (T) f.Deserialize(str);
                 return o;
             }
         }

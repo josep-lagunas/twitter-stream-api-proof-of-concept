@@ -4,7 +4,8 @@ using WebSocketApi.Controllers;
 
 namespace WebSocketApi
 {
-    public class Connection : IEquatable<Connection>     {
+    public class Connection : IEquatable<Connection>
+    {
         public ConnectionCredentials connectionCredentials { get; }
         public WebSocket webSocket { get; set; }
 
@@ -24,7 +25,7 @@ namespace WebSocketApi
             if (other == null) return false;
 
             return this.connectionCredentials.Equals(other.connectionCredentials) &&
-                this.webSocket.Equals(other.webSocket);
+                   this.webSocket.Equals(other.webSocket);
         }
-    }       
+    }
 }

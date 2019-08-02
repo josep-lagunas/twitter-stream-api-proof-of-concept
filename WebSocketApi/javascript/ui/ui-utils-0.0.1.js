@@ -48,9 +48,9 @@
                 item += "<button data-button-id='" + button.id + "' class='btn' " + forceClose + "' aria-hidden='true'>" + button.text + "</button>";
             });
             item += "</div>" +
-            "</div>" +
-            "</div>" +
-            "</div>";
+                "</div>" +
+                "</div>" +
+                "</div>";
 
             var menu = $(item).appendTo(document.body);
             //attach button actions
@@ -75,7 +75,7 @@
             if (showCallback) {
                 $(menu).on('show.bs.modal', function (showCallback, container) {
                     return function (e) {
-                            showCallback(e);
+                        showCallback(e);
                     }
                 }(showCallback, $(menu).find(".modal-body")));
             }
@@ -115,7 +115,7 @@
         return new modal(parameters);
     };
 
-    var tabsWrapper = function(parameters) {
+    var tabsWrapper = function (parameters) {
 
         this.id;
 
@@ -123,7 +123,7 @@
 
         var parameters;
 
-        var tab = function(parameters) {
+        var tab = function (parameters) {
 
             this.id = parameters.id;
 
@@ -175,19 +175,19 @@
 
         };
 
-        tab.prototype.destroyInstance = function() {
+        tab.prototype.destroyInstance = function () {
             $(htmlInstantContent).children().remove();
         };
 
 
-        tab.prototype.removeTabContent = function(idTab) {
+        tab.prototype.removeTabContent = function (idTab) {
 
             var container = $(htmlInstantContent).find("#idTab");
             $(container).append(element).children().remove();
 
         };
 
-        tab.prototype.setTabContent = function(idTab, element) {
+        tab.prototype.setTabContent = function (idTab, element) {
 
             var container = $(htmlInstantContent).find("#idTab");
             $(container).append(element);
@@ -198,7 +198,7 @@
 
     };
 
-    var navigationBarWrapper = function(parameters){
+    var navigationBarWrapper = function (parameters) {
 
         this.id;
 
@@ -215,17 +215,17 @@
                 case uiNavigationBarMenuItems.MENU:
 
                     item += "<li id='" + menuItem.id + "' class='dropdown' data-type='" + menuItem.type + "'>";
-                    item +=     "<a href='#' class='dropdown-toggle' data-toggle='dropdown' role='button' aria-expanded='false'>";
-                    item +=         menuItem.text;
-                    item +=         " <span class='caret'></span>";
-                    item +=     "</a>";
-                    item +=     "<ul class='dropdown-menu'>";
-                    item +=     "</ul>";
+                    item += "<a href='#' class='dropdown-toggle' data-toggle='dropdown' role='button' aria-expanded='false'>";
+                    item += menuItem.text;
+                    item += " <span class='caret'></span>";
+                    item += "</a>";
+                    item += "<ul class='dropdown-menu'>";
+                    item += "</ul>";
                     item += "</li>";
 
                     var element = $(item).appendTo(container);
 
-                    menuItem.subMenu.forEach(function(menuItem) {
+                    menuItem.subMenu.forEach(function (menuItem) {
                         navigationBarMenuItemFactory(menuItem, $(element).find(".dropdown-menu").first());
                     });
 
@@ -253,16 +253,16 @@
                 case uiNavigationBarMenuItems.SUBMENU:
 
                     item += "<li id='" + menuItem.id + "' class='dropdown dropdown-submenu' data-type='" + menuItem.type + "'>";
-                    item +=     "<a href='#' class='dropdown-toggle' data-toggle='dropdown' role='button' aria-expanded='false'>";
-                    item +=         menuItem.text;
-                    item +=     "</a>";
-                    item +=     "<ul class='dropdown-menu'>";
-                    item +=     "</ul>";
+                    item += "<a href='#' class='dropdown-toggle' data-toggle='dropdown' role='button' aria-expanded='false'>";
+                    item += menuItem.text;
+                    item += "</a>";
+                    item += "<ul class='dropdown-menu'>";
+                    item += "</ul>";
                     item += "</li>";
 
                     var element = $(item).appendTo(container);
 
-                    menuItem.subMenu.forEach(function(menuItem) {
+                    menuItem.subMenu.forEach(function (menuItem) {
                         navigationBarMenuItemFactory(menuItem, $(element).find(".dropdown-menu"));
                     });
 
@@ -294,31 +294,31 @@
                 case uiNavigationBarMenuItems.BUTTON:
 
                     item += "<li id='" + menuItem.id + "' data-type='" + menuItem.type + "'>";
-                    item +=     "<button type='submit' class='btn btn-default'>Submit</button>";
+                    item += "<button type='submit' class='btn btn-default'>Submit</button>";
                     item += "</li>";
                     break;
 
                 case uiNavigationBarMenuItems.SEARCH:
 
                     item += "<li id='" + menuItem.id + "' style='max-width: 200px;' data-type='" + menuItem.type + "'>";
-                    item +=     "<div class='input-group input-group-sm' style='padding:10px;'>";
-                    item +=         "<input type='text' class='form-control' placeholder=''>";
-                    item +=         "<span class='input-group-btn'>";
-                    item +=             "<button class='btn btn-default btn-sm' type='button'>";
-                    item +=                 menuItem.text;
-                    item +=             "</button>";
-                    item +=         "</span>";
-                    item +=     "</div>";
-                    item +=     "<div id='container' class='search-result-container' data-result-container='1' style='display: none;'/>";
+                    item += "<div class='input-group input-group-sm' style='padding:10px;'>";
+                    item += "<input type='text' class='form-control' placeholder=''>";
+                    item += "<span class='input-group-btn'>";
+                    item += "<button class='btn btn-default btn-sm' type='button'>";
+                    item += menuItem.text;
+                    item += "</button>";
+                    item += "</span>";
+                    item += "</div>";
+                    item += "<div id='container' class='search-result-container' data-result-container='1' style='display: none;'/>";
                     item += "</li>";
 
                     var element = $(item).appendTo(container);
 
                     if (menuItem.callbackOnClick) {
 
-                        $(element).bind("click", function(evt){
+                        $(element).bind("click", function (evt) {
 
-                            if ($(evt.target).is("button")){
+                            if ($(evt.target).is("button")) {
                                 return;
                             }
 
@@ -375,11 +375,11 @@
 
             if (menuItem.callbackOnClick) {
 
-                $(element).bind("click", function(evt){
+                $(element).bind("click", function (evt) {
 
-                    if (!$(evt.currentTarget).hasClass("disabled")){
+                    if (!$(evt.currentTarget).hasClass("disabled")) {
                         menuItem.callbackOnClick(evt);
-                    }else{
+                    } else {
                         // Avoid following the href location when clicking
                         evt.preventDefault();
                         // Avoid having the menu to close when clicking
@@ -389,7 +389,7 @@
                 });
 
             } else {
-                $(element).bind("click", function(evt) {
+                $(element).bind("click", function (evt) {
 
                     // Avoid following the href location when clicking
                     evt.preventDefault();
@@ -421,27 +421,27 @@
             this.id = parameters.id;
 
             var item = "";
-            item += "<nav id='" + uniqueId +"' class='navbar navbar-default' style='margin-top: -51px; z-index:1000;'>";
-            item +=     "<div class='container-fluid'>";
+            item += "<nav id='" + uniqueId + "' class='navbar navbar-default' style='margin-top: -51px; z-index:1000;'>";
+            item += "<div class='container-fluid'>";
 
             if (parameters.header) {
 
                 item += "<div class='navbar-header'>";
-                item +=     "<a class='navbar-brand' href='#'>";
-                item +=     "<img title='' alt='Brand' src='" + parameters.header.icoUrl + "')' class='nav-bar-shell'/>";
-                item +=     "</a>";
+                item += "<a class='navbar-brand' href='#'>";
+                item += "<img title='' alt='Brand' src='" + parameters.header.icoUrl + "')' class='nav-bar-shell'/>";
+                item += "</a>";
                 item += "</div>";
 
             }
 
-            item +=         "<!-- Collect the nav links, forms, and other content for toggling -->";
-            item +=         "<div class='collapse navbar-collapse' id='bs-example-navbar-collapse-1'>";
-            item +=             "<ul id='mainMenucontainerLeft' class='nav navbar-nav navbar-left'>";
-            item +=             "</ul>";
-            item +=             "<ul id='mainMenucontainerRight' class='nav navbar-nav navbar-right'>";
-            item +=             "</ul>";
-            item +=         "</div><!-- /.navbar-collapse -->";
-            item +=     "</div><!-- /.container-fluid -->";
+            item += "<!-- Collect the nav links, forms, and other content for toggling -->";
+            item += "<div class='collapse navbar-collapse' id='bs-example-navbar-collapse-1'>";
+            item += "<ul id='mainMenucontainerLeft' class='nav navbar-nav navbar-left'>";
+            item += "</ul>";
+            item += "<ul id='mainMenucontainerRight' class='nav navbar-nav navbar-right'>";
+            item += "</ul>";
+            item += "</div><!-- /.navbar-collapse -->";
+            item += "</div><!-- /.container-fluid -->";
             item += "</nav>";
 
             var navBar = $(item).appendTo(container);
@@ -449,15 +449,15 @@
             if (parameters.header) {
                 if (parameters.header.callbackOnClick) {
                     $(navBar).find("img").css({"cursor": "pointer"});
-                    $(navBar).find("img").bind("click", function(evt) {
-                       parameters.header.callbackOnClick(evt);
+                    $(navBar).find("img").bind("click", function (evt) {
+                        parameters.header.callbackOnClick(evt);
                     });
                 }
             }
 
             var container = $(navBar).find(".navbar-left");
 
-            mainMenu.left.forEach(function(menuItem){
+            mainMenu.left.forEach(function (menuItem) {
 
                 navigationBarMenuItemFactory(menuItem, container);
 
@@ -465,14 +465,14 @@
 
             container = $(navBar).find(".navbar-right");
 
-            mainMenu.right.forEach(function(menuItem){
+            mainMenu.right.forEach(function (menuItem) {
 
                 navigationBarMenuItemFactory(menuItem, container);
 
             });
 
             //part of submenu hacking for bootstrap 3.2.3
-            $(container).parent().find('ul.dropdown-menu [data-toggle=dropdown]').on('click', function(event) {
+            $(container).parent().find('ul.dropdown-menu [data-toggle=dropdown]').on('click', function (event) {
                 // Avoid following the href location when clicking
                 event.preventDefault();
                 // Avoid having the menu to close when clicking
@@ -480,11 +480,11 @@
                 // If a menu is already open we close it
                 //$('ul.dropdown-menu [data-toggle=dropdown]').parent().removeClass('open');
                 // opening the one you clicked on only if is not already opened
-                if ($(this).parent().hasClass('open')){
+                if ($(this).parent().hasClass('open')) {
                     return;
                 }
 
-                if ($(this).parent().hasClass('disabled')){
+                if ($(this).parent().hasClass('disabled')) {
                     return;
                 }
 
@@ -494,11 +494,11 @@
                 var menupos = menu.offset();
 
                 if ((menupos.left + menu.width()) + 30 > $(window).width()) {
-                    var newpos = - menu.width();
+                    var newpos = -menu.width();
                 } else {
                     var newpos = $(this).parent().width();
                 }
-                menu.css({ left:newpos });
+                menu.css({left: newpos});
 
             });
 
@@ -506,54 +506,54 @@
 
             parameters = parameters;
 
-            $(navBar).animate({ 'margin-top': '0px' }, 250);
+            $(navBar).animate({'margin-top': '0px'}, 250);
 
         };
 
-        navigationBar.prototype.addMainMenuItem = function(menuItem){
+        navigationBar.prototype.addMainMenuItem = function (menuItem) {
 
             //by default set to left if no value informed
             menuItem.position = (menuItem.position) ? menuItem.position : "left";
 
             var container;
 
-            if (menuItem.position !== 'left' && menuItem.position !== 'right'){
+            if (menuItem.position !== 'left' && menuItem.position !== 'right') {
                 throw new Error("unknown position");
-            }else if(menuItem.position === 'left') {
+            } else if (menuItem.position === 'left') {
 
                 container = $(htmlInstantContent).find(".navbar-left");
 
-            }else if(menuItem.position === 'right') {
+            } else if (menuItem.position === 'right') {
 
                 container = $(htmlInstantContent).find(".navbar-right");
 
             }
 
-            navigationBarMenuItemFactory(menuItem,container);
+            navigationBarMenuItemFactory(menuItem, container);
 
         };
 
-        navigationBar.prototype.addSubMenuItem = function(idParent, menuItem){
+        navigationBar.prototype.addSubMenuItem = function (idParent, menuItem) {
 
             var parent = $(htmlInstantContent).find("#" + idParent);
 
-            if ($(parent).attr("data-type") !== 'MENU' && $(parent).attr("data-type") !== 'SUBMENU'){
+            if ($(parent).attr("data-type") !== 'MENU' && $(parent).attr("data-type") !== 'SUBMENU') {
                 throw new Error("Unable to add menuItem to a non MENU or SUBMENU item");
             }
 
             var container = $(parent).find(".dropdown-menu");
 
-            navigationBarMenuItemFactory(menuItem,container);
+            navigationBarMenuItemFactory(menuItem, container);
 
         };
 
-        navigationBar.prototype.setImage = function(imageUrl){
+        navigationBar.prototype.setImage = function (imageUrl) {
 
             htmlInstantContent.find("img").attr("src", imageUrl);
 
         };
 
-        navigationBar.prototype.disableMenuItem = function(idMenuItem){
+        navigationBar.prototype.disableMenuItem = function (idMenuItem) {
 
             var element = htmlInstantContent.find("#" + idMenuItem);
             if (element) {
@@ -569,7 +569,7 @@
 
         };
 
-        navigationBar.prototype.enableMenuItem = function(idMenuItem){
+        navigationBar.prototype.enableMenuItem = function (idMenuItem) {
 
             var element = htmlInstantContent.find("#" + idMenuItem);
             element.removeClass("disabled");
@@ -584,25 +584,25 @@
             }
         };
 
-        navigationBar.prototype.removeMenuItem = function(idMenuItem){
+        navigationBar.prototype.removeMenuItem = function (idMenuItem) {
 
             htmlInstantContent.find("#" + idMenuItem).remove();
 
         };
 
-        navigationBar.prototype.showWorkArea = function() {
+        navigationBar.prototype.showWorkArea = function () {
 
             parameters.workArea.focuson();
 
         };
 
-        navigationBar.prototype.hideWorkArea = function() {
+        navigationBar.prototype.hideWorkArea = function () {
 
             parameter.workArea.focusout();
 
         };
 
-        navigationBar.prototype.renderSearchResults = function(idSearchMenuItem, results) {
+        navigationBar.prototype.renderSearchResults = function (idSearchMenuItem, results) {
 
             var element = htmlInstantContent.find("#" + idSearchMenuItem);
             //check if its a search button
@@ -616,7 +616,7 @@
             $(container).children().remove();
             $(container).hide();
 
-            if(results && results.length > 0) {
+            if (results && results.length > 0) {
 
                 var itemTemplate = getHtmlRenderTemplateForSearchButton(idSearchMenuItem);
 
@@ -650,13 +650,13 @@
 
                         var value = result;
 
-                        $.each(parsedValue.toExtractValuesPropertiesVector, function(j, currentProperty){
-                            if (currentProperty.indexOf('[')<0) {
+                        $.each(parsedValue.toExtractValuesPropertiesVector, function (j, currentProperty) {
+                            if (currentProperty.indexOf('[') < 0) {
                                 value = value[currentProperty];
-                            }else {
-                                var nameAux = currentProperty.substr(0,currentProperty.indexOf('['));
-                                var index = Number(currentProperty.replace(nameAux,'')
-                                    .trim().replace('[','').replace(']',''));
+                            } else {
+                                var nameAux = currentProperty.substr(0, currentProperty.indexOf('['));
+                                var index = Number(currentProperty.replace(nameAux, '')
+                                    .trim().replace('[', '').replace(']', ''));
                                 value = value[nameAux][index];
                             }
                         });
@@ -670,11 +670,11 @@
                     $(element).data("info", result);
 
                     //add events
-                    $.each(itemTemplate.matchItemRenderEvents.clickEvents, function(i, currentElement) {
+                    $.each(itemTemplate.matchItemRenderEvents.clickEvents, function (i, currentElement) {
                         var tagEventReceiver = $(element).find("#" + currentElement.id);
-                        $(tagEventReceiver).css({ "cursor" : "pointer"});
-                        $(tagEventReceiver).bind("click", function(callbackOnClick) {
-                            return function(evt) {
+                        $(tagEventReceiver).css({"cursor": "pointer"});
+                        $(tagEventReceiver).bind("click", function (callbackOnClick) {
+                            return function (evt) {
                                 callbackOnClick(evt);
                             }
                         }(currentElement.callback));
@@ -720,13 +720,13 @@
             }
         }
 
-        navigationBar.prototype.destroyNavigationBar = function(){
+        navigationBar.prototype.destroyNavigationBar = function () {
 
             $(htmlInstantContent).remove();
 
         };
 
-        navigationBar.prototype.getjQueryObject = function(){
+        navigationBar.prototype.getjQueryObject = function () {
 
             return htmlInstantContent;
 
@@ -736,7 +736,7 @@
 
     };
 
-    var workAreaWrapper = function(parameters) {
+    var workAreaWrapper = function (parameters) {
 
         this.id;
 
@@ -770,13 +770,13 @@
 
         };
 
-        workArea.prototype.getOrder = function() {
+        workArea.prototype.getOrder = function () {
 
             return order;
 
         };
 
-        workArea.prototype.setOrder = function(position) {
+        workArea.prototype.setOrder = function (position) {
 
             order = position;
 
@@ -784,13 +784,13 @@
 
         workArea.prototype.focuson = function () {
 
-            $(htmlInstantContent).animate({ "left" : "0%"});
+            $(htmlInstantContent).animate({"left": "0%"});
 
         };
 
         workArea.prototype.focusout = function () {
 
-            $(htmlInstantContent).animate({ "left" : "-100%"});
+            $(htmlInstantContent).animate({"left": "-100%"});
 
         };
 
@@ -806,25 +806,25 @@
 
         };
 
-        workArea.prototype.setRotation = function(deg){
+        workArea.prototype.setRotation = function (deg) {
 
             rotation = deg;
 
         };
 
-        workArea.prototype.getRotation = function(){
+        workArea.prototype.getRotation = function () {
 
             return rotation;
 
         };
 
-        workArea.prototype.setTranslation = function(pixels){
+        workArea.prototype.setTranslation = function (pixels) {
 
             translation = pixels;
 
         };
 
-        workArea.prototype.getTranslation = function(){
+        workArea.prototype.getTranslation = function () {
 
             return translation;
 
@@ -835,19 +835,18 @@
     };
 
 
-
     window['utils'] = {
 
         specialEvents: {
 
-            unbindMouseWheelEvent: function(element, callback) {
+            unbindMouseWheelEvent: function (element, callback) {
 
                 if (element.removeEventListener) {
                     element.removeEventListener("mousewheel", callback, false);
                     element.removeEventListener("DOMMouseScroll", callback, false);
-                }else if (element.detachEvent) {
+                } else if (element.detachEvent) {
                     element.detachEvent("onmousewheel", callback);
-                }else {
+                } else {
                     element["onmousewheel"] = null;
                 }
             },
@@ -902,10 +901,10 @@
 
                 if (!isNaN(width)) {
                     width = width.toString() + "px";
-                } else if(width.indexOf("px") === -1){
+                } else if (width.indexOf("px") === -1) {
                     throw new Error("accepted value for resize modal width sample [ 600, \"600px\"]");
                 }
-                $("#modal .modal-dialog").css({ width: width });
+                $("#modal .modal-dialog").css({width: width});
             }
 
         },
@@ -947,7 +946,7 @@
 
             tabsInstances: {},
 
-            createTabs: function(parameters) {
+            createTabs: function (parameters) {
 
                 if (!parameters || !parameters.id) {
                     throw new Error("parameters.id is required");
@@ -961,12 +960,12 @@
                 return tabs;
 
             },
-            getTabs: function(idTabs) {
+            getTabs: function (idTabs) {
 
                 return window.utils.tabs.tabsInstances[idTabs];
 
             },
-            destroyTabs: function(idTabs) {
+            destroyTabs: function (idTabs) {
 
                 if (window.utils.tabs.tabsInstances[idTabs]) {
                     window.utils.tabs.tabsInstances[idTabs].destroyInstance();
@@ -979,8 +978,8 @@
         },
         workArea: {
 
-            rotateCarousel : function(currentTranslation, currentRotation,
-                                      futureTranslation, futureRotation){
+            rotateCarousel: function (currentTranslation, currentRotation,
+                                      futureTranslation, futureRotation) {
 
                 var carousel = window.utils.workArea.workAreasCarousel.jQueryElement;
 
@@ -991,11 +990,11 @@
                     $(carousel).css(
                         {
                             "-webkit-transform":
-                            "translateZ(-" + futureTranslation + "px) rotateY(0deg)"
+                                "translateZ(-" + futureTranslation + "px) rotateY(0deg)"
                         }).css(
                         {
                             "transform":
-                            "translateZ(-" + futureTranslation + "px) rotateY(0deg)"
+                                "translateZ(-" + futureTranslation + "px) rotateY(0deg)"
                         }
                     );
 
@@ -1032,11 +1031,11 @@
                 $(carousel).css(
                     {
                         "-webkit-transform":
-                        "translateZ(-" + distancePreRotation + "px) rotateY(" + currentRotation + "deg)"
+                            "translateZ(-" + distancePreRotation + "px) rotateY(" + currentRotation + "deg)"
                     }).css(
                     {
                         "transform":
-                        "translateZ(-" + distancePreRotation + "px) rotateY(" + currentRotation + "deg)"
+                            "translateZ(-" + distancePreRotation + "px) rotateY(" + currentRotation + "deg)"
                     }
                 );
 
@@ -1044,7 +1043,7 @@
 
             workAreasCarousel: undefined
 
-            ,createWorkArea: function (parameters) {
+            , createWorkArea: function (parameters) {
 
                 if (!parameters || !parameters.id) {
                     throw new Error("parameters.id is required");
@@ -1172,11 +1171,11 @@
 
                                     window.utils.workArea
                                         .rotateCarousel(
-                                        currentWorkArea.getTranslation()
-                                        , currentCarouselRotation
-                                        , workArea.getTranslation()
-                                        , rotation
-                                    );
+                                            currentWorkArea.getTranslation()
+                                            , currentCarouselRotation
+                                            , workArea.getTranslation()
+                                            , rotation
+                                        );
 
                                     return workArea;
                                 }
@@ -1234,11 +1233,11 @@
                                 //perform rotation from current to next
                                 window.utils.workArea
                                     .rotateCarousel(
-                                    currentWorkArea.getTranslation()
-                                    , currentCarouselRotation
-                                    , workArea.getTranslation()
-                                    , rotation
-                                );
+                                        currentWorkArea.getTranslation()
+                                        , currentCarouselRotation
+                                        , workArea.getTranslation()
+                                        , rotation
+                                    );
 
                                 //return destination workArea
                                 return workArea;
@@ -1262,7 +1261,7 @@
 
                 var workAreaWidth = Number((workArea.getWidth().replace("px", "")));
 
-                var tz = Math.round(( workAreaWidth / 2 ) /
+                var tz = Math.round((workAreaWidth / 2) /
                     Math.tan(Math.PI / instances.length));
 
                 if (instances.length === 1) {
@@ -1273,11 +1272,11 @@
 
                     current.getjQueryElement().css({
                         "-webkit-transform": "rotateY(" +
-                        accSeparation.toString() + "deg) translateZ(" + tz + "px)"
-                    }).css({
-                            "transform": "rotateY(" +
                             accSeparation.toString() + "deg) translateZ(" + tz + "px)"
-                        });
+                    }).css({
+                        "transform": "rotateY(" +
+                            accSeparation.toString() + "deg) translateZ(" + tz + "px)"
+                    });
 
                     current.setOrder(i);
                     current.setRotation(accSeparation);
@@ -1298,14 +1297,14 @@
 
                 window.utils.workArea.workAreasCarousel.currentWorkAreaIndex = 0;
                 window.utils.workArea.workAreasCarousel.currentWorkAreaShowed =
-                   instances[0];
+                    instances[0];
 
                 this.setFocusOnWorkArea(parameters.id, true);
 
                 return workArea;
 
             },
-            getWorkAreaContent: function(id) {
+            getWorkAreaContent: function (id) {
 
                 var carousel = window.utils.workArea.workAreasCarousel.jQueryElement;
 

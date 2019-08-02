@@ -34,7 +34,8 @@ if (!Worker || (location && location.protocol === "file:")) {
         }
 
         /// Dummy onmessage() function.
-        return_object.onmessage = function () { };
+        return_object.onmessage = function () {
+        };
 
         /// This is the function that the main script calls to post a message to the "worker."
         return_object.postMessage = function (message) {
@@ -42,7 +43,7 @@ if (!Worker || (location && location.protocol === "file:")) {
             if (global_var.onmessage) {
                 /// Call the global onmessage() created by the "worker."
                 ///NOTE: Wrap the message in an object.
-                global_var.onmessage({ data: message });
+                global_var.onmessage({data: message});
             } else {
                 /// Since the script has not yet loaded, wait a moment, and then retry.
                 setTimeout(function () {
@@ -55,7 +56,7 @@ if (!Worker || (location && location.protocol === "file:")) {
         global_var.postMessage = function (e) {
             ///NOTE: Wrap the message in an object.
             ///TODO: Add more properties.
-            return_object.onmessage({ data: e, type: "message" });
+            return_object.onmessage({data: e, type: "message"});
         };
 
         require(script);

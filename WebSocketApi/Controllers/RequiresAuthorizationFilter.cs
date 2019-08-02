@@ -13,7 +13,6 @@ using System.Collections.Concurrent;
 
 namespace WebSocketApi.Controllers
 {
-     
     internal class RequiresAuthorizationFilter : IActionFilter
     {
         object validationObject;
@@ -28,14 +27,20 @@ namespace WebSocketApi.Controllers
         public Task<HttpResponseMessage> ExecuteActionFilterAsync(HttpActionContext actionContext,
             CancellationToken cancellationToken, Func<Task<HttpResponseMessage>> continuation)
         {
-            if (MethodAllowAnonymous(actionContext)) { return continuation(); }
+            if (MethodAllowAnonymous(actionContext))
+            {
+                return continuation();
+            }
 
             if (ControllerRequiresAuthorization(actionContext)
                 || MethodRequiresAuthorization(actionContext))
             {
                 string clientId = HttpContext.Current.Request.Headers["client-id"];
 
-                if (IsAuthorized(clientId)) { return UnauthorizedResponse(); }
+                if (IsAuthorized(clientId))
+                {
+                    return UnauthorizedResponse();
+                }
             }
 
             return continuation();
@@ -43,35 +48,35 @@ namespace WebSocketApi.Controllers
 
         private static Task<HttpResponseMessage> UnauthorizedResponse()
         {
-            return Task.Run(() =>
-            { return new HttpResponseMessage(HttpStatusCode.Unauthorized); });
+            return Task.Run(() => { return new HttpResponseMessage(HttpStatusCode.Unauthorized); });
         }
 
         private bool IsAuthorized(string clientId)
         {
-            return ((ConcurrentDictionary<ConnectionCredentials, Connection>)validationObject)
-                .Keys.FirstOrDefault(c => { return c.ClientId == clientId; }) == null;
+            return ((ConcurrentDictionary<ConnectionCredentials, Connection>) validationObject)
+                   .Keys.FirstOrDefault(c => { return c.ClientId == clientId; }) == null;
         }
 
         private static bool MethodRequiresAuthorization(HttpActionContext actionContext)
         {
             return actionContext.ActionDescriptor
-                .GetCustomAttributes<RequiresAuthorizationAttribute>()
-                .FirstOrDefault() != null;
+                       .GetCustomAttributes<RequiresAuthorizationAttribute>()
+                       .FirstOrDefault() != null;
         }
 
         private static bool ControllerRequiresAuthorization(HttpActionContext actionContext)
         {
             return actionContext.ActionDescriptor
-                .ControllerDescriptor
-                .GetCustomAttributes<RequiresAuthorizationAttribute>().FirstOrDefault() != null;
+                       .ControllerDescriptor
+                       .GetCustomAttributes<RequiresAuthorizationAttribute>().FirstOrDefault() !=
+                   null;
         }
 
         private static bool MethodAllowAnonymous(HttpActionContext actionContext)
         {
             return actionContext.ActionDescriptor
-                             .GetCustomAttributes<AllowAnonymousAttribute>()
-                             .FirstOrDefault() != null;
+                       .GetCustomAttributes<AllowAnonymousAttribute>()
+                       .FirstOrDefault() != null;
         }
     }
 }

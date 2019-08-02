@@ -1,7 +1,7 @@
 ﻿var compressor = {
 
     _instance: null,
-    
+
 
     getInstance: function () {
 
@@ -10,8 +10,6 @@
             this._instance = {
 
                 compress: function (data, callback, progressCallback) {
-                    
-                    //var _my_lzma = new LZMA("lzma_worker.js");
 
                     LZMA.compress(data, 1, callback, progressCallback);
                 },

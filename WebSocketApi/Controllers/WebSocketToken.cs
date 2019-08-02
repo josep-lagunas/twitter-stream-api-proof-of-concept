@@ -8,10 +8,12 @@ namespace WebSocketApi.Controllers
 {
     public class WebSocketToken
     {
-        [JsonProperty(PropertyName="clientid")]
+        [JsonProperty(PropertyName = "clientid")]
         public string ClientId { get; }
-        [JsonProperty(PropertyName="wstoken")]
+
+        [JsonProperty(PropertyName = "wstoken")]
         public string Token { get; }
+
         public WebSocketToken(string clientId, string token)
         {
             this.ClientId = clientId;

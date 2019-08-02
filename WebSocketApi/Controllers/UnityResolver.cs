@@ -10,11 +10,12 @@ namespace WebSocketApi.Controllers
     public class UnityResolver : IDependencyResolver
     {
         protected IUnityContainer container;
-        
+
         public UnityResolver(IUnityContainer container)
         {
             this.container = container ?? throw new ArgumentNullException("container");
         }
+
         public IDependencyScope BeginScope()
         {
             var child = container.CreateChildContainer();
@@ -43,7 +44,8 @@ namespace WebSocketApi.Controllers
             try
             {
                 return container.ResolveAll(serviceType);
-            }catch (ResolutionFailedException)
+            }
+            catch (ResolutionFailedException)
             {
                 return new List<object>();
             }

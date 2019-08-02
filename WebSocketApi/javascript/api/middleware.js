@@ -7,44 +7,43 @@
  *  @dependences: jQuery v1.11.0
  */
 
-(function(){
+(function () {
 
-    var serverConnector = (function(){
+    var serverConnector = (function () {
 
         var instance = "";
         var _baseURL = "";
         var _baseWebsocketUrl = "";
 
-        function init(){
+        function init() {
 
             //Singleton
 
             //Private Methods and Variables goes here
 
             //check method to assure that base URL has been set before any call.
-            function isBaseURLSet(){
+            function isBaseURLSet() {
 
                 if (_baseURL === "" || _baseURL === undefined)
                     throw new Error("Base URL must be set before. Use ServerConnector.setBaseURL() method.");
             }
 
             //Extract and adapt parameters (queryParameters)
-            function extractQueryParameters(parameters){
+            function extractQueryParameters(parameters) {
 
                 var queryParametersURLFormat = "";
 
-                if (parameters !== undefined && parameters !== ""){
+                if (parameters !== undefined && parameters !== "") {
 
-                    parameters.forEach(function(current){
+                    parameters.forEach(function (current) {
 
-                        if (typeof current.key === "string" || typeof current.value === "number" || typeof current.value === "string")
-                        {
+                        if (typeof current.key === "string" || typeof current.value === "number" || typeof current.value === "string") {
 
                             if (current.key !== undefined && current.key !== "") {
                                 queryParametersURLFormat = queryParametersURLFormat === "" ? "?" + current.key + "=" + current.value : queryParametersURLFormat + "&" + current.key + "=" + current.value;
                             }
 
-                        }else
+                        } else
 
                             throw new Error("Invalid query parameter type, only string and number types allowed");
 
@@ -56,22 +55,21 @@
             }
 
             //Extract and adapt parameters (pathParameters)
-            function extractPathParameters(parameters){
+            function extractPathParameters(parameters) {
 
                 var PathParameters = "";
 
-                if (parameters !== undefined && parameters !== ""){
+                if (parameters !== undefined && parameters !== "") {
 
-                    parameters.forEach(function(current){
+                    parameters.forEach(function (current) {
 
-                        if (typeof current.key === "string" || typeof current.value === "number" || typeof current.value === "string")
-                        {
+                        if (typeof current.key === "string" || typeof current.value === "number" || typeof current.value === "string") {
 
-                            if (current.key !== undefined && current.key !== ""){
-                                PathParameters +=  "/" + current.value;
+                            if (current.key !== undefined && current.key !== "") {
+                                PathParameters += "/" + current.value;
                             }
 
-                        }else
+                        } else
 
                             throw new Error("Invalid path paramater type, only string and number types allowed");
 
@@ -155,7 +153,8 @@
                             if (getAsJSON === true) {
                                 try {
                                     result = JSON.parse(data);
-                                } catch (e) { }
+                                } catch (e) {
+                                }
                             } else {
                                 result = data;
                             }
@@ -206,9 +205,9 @@
             };
         }
 
-        return{
+        return {
 
-            setBaseURL: function(baseURL){
+            setBaseURL: function (baseURL) {
 
                 if (baseURL.indexOf('https') === -1 && baseURL.indexOf('http') === -1) {
                     throw Error("http or https not found.");
@@ -218,7 +217,7 @@
 
             },
 
-            getBaseURL: function(){
+            getBaseURL: function () {
 
                 return _baseURL;
             },
@@ -227,9 +226,9 @@
                 return _baseWebsocketUrl;
 
             },
-            getInstance: function(){
+            getInstance: function () {
 
-                if (!instance){
+                if (!instance) {
                     instance = init();
                 }
 
